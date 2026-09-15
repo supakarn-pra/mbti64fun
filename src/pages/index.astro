@@ -1,0 +1,384 @@
+---
+import { AXES, QUESTIONS, CHOICES, TYPES, GUILDS, PER_AXIS } from "../data/quiz.js";
+
+// เบราว์เซอร์บางตัว (webview ใน LINE/แอปต่าง ๆ) ไม่มีพจนานุกรมตัดคำไทย เลยตัดบรรทัดกลางคำ
+// ตัดคำด้วย Intl.Segmenter ตอน build แล้วคั่นด้วย zero-width space ให้เบราว์เซอร์รู้ว่าตรงไหนตัดได้
+const seg = new Intl.Segmenter("th", { granularity: "word" });
+const th = (s) => [...seg.segment(s)].map((x) => x.segment).join("​");
+const Q = QUESTIONS.map((q) => ({ ...q, text: th(q.text) }));
+const T = Object.fromEntries(Object.entries(TYPES).map(([k, v]) => [k, v.map(th)]));
+const A = AXES.map((x) => ({ ...x, labA: th(x.labA), labB: th(x.labB), descA: th(x.descA), descB: th(x.descB) }));
+const G = Object.fromEntries(Object.entries(GUILDS).map(([k, v]) => [k, { ...v, line: th(v.line) }]));
+
+const vars = (mode) => AXES.map((x) => `--c-${x.key}:${x[mode]};`).join("");
+const axisPalette = `
+:root{${vars("light")}}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){${vars("dark")}}}
+:root[data-theme="dark"]{${vars("dark")}}
+`;
+---
+
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<!-- ต้องมี lang=th ไม่งั้นเบราว์เซอร์ตัดบรรทัดกลางคำไทย เช่น "ก / ลุ่ม" -->
+<script is:inline>document.documentElement.lang = "th";</script>
+<title>64 ตำแหน่งในต่างโลก</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Srisakdi:wght@400;700&family=Sarabun:wght@300;400;600;700&family=IBM+Plex+Mono:wght@500&display=swap"
+/>
+
+<style is:inline set:html={axisPalette}></style>
+
+<style is:global>
+  :root {
+    --ground: #EBE7E0;
+    --surface: #FBF9F6;
+    --line: #D6CFC2;
+    --ink: #24201C;
+    --ink-soft: #625A50;
+    --ink-faint: #8C8376;
+    --gold: #8A6A15;
+    --shadow: 0 1px 2px rgba(36, 32, 28, .06), 0 20px 44px -26px rgba(36, 32, 28, .5);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #14121B;
+      --surface: #1D1A26;
+      --line: #342F41;
+      --ink: #F0EBE2;
+      --ink-soft: #ADA598;
+      --ink-faint: #7E7668;
+      --gold: #D9B15A;
+      --shadow: 0 1px 2px rgba(0, 0, 0, .5), 0 20px 44px -26px rgba(0, 0, 0, .95);
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #14121B;
+    --surface: #1D1A26;
+    --line: #342F41;
+    --ink: #F0EBE2;
+    --ink-soft: #ADA598;
+    --ink-faint: #7E7668;
+    --gold: #D9B15A;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .5), 0 20px 44px -26px rgba(0, 0, 0, .95);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: Sarabun, "Noto Sans Thai", "Leelawadee UI", Thonburi, system-ui, sans-serif;
+    font-weight: 400;
+    line-height: 1.75;
+  }
+  .wrap { max-width: 620px; margin: 0 auto; padding-inline: 20px; padding-block: 0 56px; }
+  .fx { font-family: Srisakdi, Sarabun, serif; font-weight: 700; }
+
+  /* ---------- แถบบน ---------- */
+  .top {
+    position: sticky; top: 0; z-index: 5;
+    background: color-mix(in srgb, var(--ground) 92%, transparent);
+    backdrop-filter: blur(10px);
+    margin-inline: -20px; padding: 12px 20px 10px;
+    border-bottom: 1px solid var(--line);
+  }
+  .brow { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .mark { font-size: 19px; line-height: 1.4; letter-spacing: .01em; }
+  .mark span { color: var(--gold); }
+  .count {
+    font-family: "IBM Plex Mono", monospace; font-size: 12px;
+    color: var(--ink-faint); font-variant-numeric: tabular-nums; flex: none;
+  }
+  .segs { display: flex; gap: 5px; margin-top: 9px; }
+  .seg { flex: 1; height: 5px; border-radius: 3px; background: var(--line); overflow: hidden; }
+  .seg i { display: block; height: 100%; width: 0; background: var(--sc); transition: width .3s ease; }
+  .seg[data-live="1"] { background: color-mix(in srgb, var(--sc) 25%, var(--line)); }
+
+  /* ---------- ใบประเมิน ---------- */
+  .intro {
+    margin: 22px 0 0; font-size: 13.5px; color: var(--ink-faint);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .intro::before, .intro::after { content: ""; height: 1px; background: var(--line); flex: 1; }
+  .stage { padding-top: 18px; }
+  .card {
+    background: color-mix(in srgb, var(--c) 6%, var(--surface));
+    border: 1px solid color-mix(in srgb, var(--c) 30%, var(--line));
+    border-radius: 4px; box-shadow: var(--shadow);
+    padding: 28px 24px 24px; position: relative;
+  }
+  .card::before {
+    content: ""; position: absolute; inset: 5px; border: 1px solid color-mix(in srgb, var(--c) 18%, transparent);
+    border-radius: 2px; pointer-events: none;
+  }
+  .card.turn { animation: slip .28s ease; }
+  @keyframes slip { from { opacity: 0; transform: translateY(10px); } }
+  .qnum { font-size: 12.5px; letter-spacing: .04em; color: var(--c); margin: 0 0 12px; font-weight: 600; }
+  .qtext { font-size: clamp(20px, 5vw, 25px); line-height: 1.6; font-weight: 400; margin: 0 0 24px; text-wrap: pretty; }
+  .opts { display: flex; flex-direction: column; gap: 9px; }
+  .opts button {
+    display: flex; align-items: center; gap: 13px; width: 100%; text-align: left;
+    font-family: inherit; font-size: 16px; color: var(--ink);
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 3px; padding: 12px 15px; cursor: pointer;
+    transition: border-color .15s, background .15s, transform .1s;
+  }
+  .opts button:hover { border-color: var(--c); transform: translateX(3px); }
+  .opts button:focus-visible { outline: 2px solid var(--c); outline-offset: 2px; }
+  .emo {
+    flex: none; width: 34px; text-align: center; line-height: 1;
+    filter: grayscale(.45); opacity: .8;
+    transition: transform .18s ease, filter .18s, opacity .18s;
+  }
+  .opts button[data-strength="2"] .emo { font-size: 27px; }
+  .opts button[data-strength="1"] .emo { font-size: 22px; }
+  .opts button:hover .emo, .opts button:focus-visible .emo {
+    filter: none; opacity: 1; animation: dook .45s ease-in-out infinite;
+  }
+  @keyframes dook {
+    0%, 100% { transform: scale(1.3) rotate(-9deg); }
+    50% { transform: scale(1.3) rotate(9deg); }
+  }
+  .opts button[aria-pressed="true"] { border-color: var(--c); background: color-mix(in srgb, var(--c) 13%, var(--surface)); }
+  .opts button[aria-pressed="true"] .emo { filter: none; opacity: 1; transform: scale(1.2); }
+  .key {
+    margin-left: auto; font-family: "IBM Plex Mono", monospace; font-size: 11px; color: var(--ink-faint);
+    border: 1px solid var(--line); border-radius: 3px; padding: 0 6px; flex: none;
+  }
+  @media (max-width: 430px) { .key { display: none; } }
+
+  .under { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 16px; }
+  .ghost { font-family: inherit; font-size: 14px; color: var(--ink-soft); background: none; border: none; cursor: pointer; padding: 6px 0; }
+  .ghost:hover { color: var(--ink); }
+  .ghost:disabled { opacity: .35; cursor: default; }
+  .ghost:focus-visible { outline: 2px solid var(--ink-faint); outline-offset: 2px; }
+  .left { font-size: 13px; color: var(--ink-faint); }
+
+  /* ---------- บัตรประจำตัว ---------- */
+  #result[hidden] { display: none; }
+  .rcard {
+    background: var(--surface); border: 1px solid var(--gold);
+    border-radius: 4px; box-shadow: var(--shadow); padding: 30px 24px; position: relative;
+  }
+  .rcard::before {
+    content: ""; position: absolute; inset: 5px;
+    border: 1px solid color-mix(in srgb, var(--gold) 35%, transparent); border-radius: 2px; pointer-events: none;
+  }
+  /* ไม่ใส่ letter-spacing กับข้อความไทย สระกับวรรณยุกต์จะลอยห่างจากตัวอักษร */
+  .issued { font-size: 12px; color: var(--ink-faint); margin: 0 0 18px; }
+  .guild { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+  .sigil {
+    width: 40px; height: 40px; flex: none; display: grid; place-items: center; font-size: 19px;
+    color: var(--gold); border: 1px solid var(--gold); border-radius: 50%;
+  }
+  .gname { font-size: 17px; line-height: 1.3; }
+  .gline { display: block; font-family: Sarabun, sans-serif; font-weight: 400; font-size: 12.5px; color: var(--ink-faint); line-height: 1.5; }
+  .code { font-family: "IBM Plex Mono", monospace; font-size: 15px; letter-spacing: .22em; color: var(--gold); margin: 0; }
+  .nick { font-size: clamp(27px, 7vw, 38px); line-height: 1.35; margin: 4px 0 10px; text-wrap: balance; }
+  .tag { margin: 0; color: var(--ink-soft); font-size: 15.5px; }
+
+  .stats { list-style: none; margin: 26px 0 0; padding: 20px 0 0; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 17px; }
+  .stats .head { font-size: 12px; color: var(--ink-faint); margin: -4px 0 0; }
+  .stat .top2 { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+  .stat .nm { font-size: 13px; color: var(--ink-faint); }
+  .stat .val { font-size: 15px; color: var(--c); font-weight: 600; text-align: right; }
+  .bar { height: 7px; border-radius: 4px; background: var(--line); margin: 6px 0 7px; position: relative; overflow: hidden; }
+  .bar i { position: absolute; top: 0; bottom: 0; background: var(--c); }
+  .stat p { margin: 0; font-size: 13.5px; color: var(--ink-soft); line-height: 1.6; }
+  .pct { font-family: "IBM Plex Mono", monospace; font-variant-numeric: tabular-nums; color: var(--ink-faint); font-weight: 400; font-size: 12px; }
+
+  .tools { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 26px; }
+  .tools button { font-family: inherit; font-size: 14px; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 3px; padding: 9px 18px; cursor: pointer; }
+  .tools button:hover { border-color: var(--gold); }
+  .tools button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+  footer { margin-top: 32px; font-size: 12.5px; color: var(--ink-faint); line-height: 1.7; text-align: center; }
+  @media (prefers-reduced-motion: reduce) { *, *::before { animation: none !important; transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <div class="top">
+    <div class="brow">
+      <span class="mark fx">64 ตำแหน่งใน<span>ต่างโลก</span></span>
+      <span class="count" id="count">01 / 90</span>
+    </div>
+    <div class="segs" id="segs">
+      {AXES.map((x) => (
+        <div class="seg" style={`--sc:var(--c-${x.key})`} data-axis={x.key} title={x.name}><i></i></div>
+      ))}
+    </div>
+  </div>
+
+  <p class="intro">{th("แบบประเมินตำแหน่งประจำปี · ฝ่ายบุคคลแห่งอาณาจักร")}</p>
+
+  <div class="stage">
+    <section class="card" id="card">
+      <p class="qnum" id="qnum">ข้อ 01 / 90</p>
+      <h1 class="qtext" id="qtext">{Q[0].text}</h1>
+      <div class="opts" id="opts"></div>
+    </section>
+    <div class="under">
+      <button class="ghost" id="back" disabled>← ย้อนกลับ</button>
+      <span class="left" id="left">เหลืออีก 89 ข้อ</span>
+    </div>
+  </div>
+
+  <section id="result" hidden aria-live="polite">
+    <div class="rcard">
+      <p class="issued">บัตรประจำตัวพนักงานแห่งอาณาจักร</p>
+      <div class="guild">
+        <span class="sigil" id="rsigil"></span>
+        <span>
+          <span class="gname fx" id="rguild"></span>
+          <span class="gline" id="rgline"></span>
+        </span>
+      </div>
+      <p class="code" id="rcode"></p>
+      <h2 class="nick fx" id="rnick"></h2>
+      <p class="tag" id="rtag"></p>
+      <ul class="stats" id="rstats"><li class="head">ค่าสถานะ</li></ul>
+      <div class="tools">
+        <button id="copy">คัดลอกไปแปะในแชท</button>
+        <button id="again">ประเมินใหม่</button>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    {th("ทำขึ้นเพื่อความสนุกในทีม ไม่ใช่เครื่องมือวัดผลทางจิตวิทยา")}<br />
+    {th("ห้ามใช้ตัดสินใจเรื่องการจ้างงานหรือประเมินผลคนจริง ๆ นะ")}
+  </footer>
+</div>
+
+<script is:inline define:vars={{ QUESTIONS: Q, AXES: A, CHOICES, TYPES: T, GUILDS: G, PER_AXIS }}>
+  const KEY = "mbti64.v3";
+  let ans = {};
+  try { ans = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch (e) {}
+
+  const $ = (id) => document.getElementById(id);
+  const card = $("card"), optBox = $("opts"), result = $("result"), stage = document.querySelector(".stage");
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const guildOf = (b) => (b[1] === "N" ? (b[2] === "T" ? "NT" : "NF") : b[3] === "J" ? "SJ" : "SP");
+
+  CHOICES.forEach((c, k) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.dataset.side = c.side;
+    b.dataset.strength = String(Math.abs(c.value));
+    b.setAttribute("aria-pressed", "false");
+    b.innerHTML = '<span class="emo" aria-hidden="true"></span><span class="lab"></span><span class="key">' + (k + 1) + "</span>";
+    b.querySelector(".emo").textContent = c.icon;
+    b.querySelector(".lab").textContent = c.label;
+    b.onclick = () => answer(c.value);
+    optBox.appendChild(b);
+  });
+
+  const firstOpen = () => {
+    const i = QUESTIONS.findIndex((q, j) => ans[j] === undefined);
+    return i === -1 ? QUESTIONS.length - 1 : i;
+  };
+  let at = firstOpen();
+
+  function draw(animate) {
+    const q = QUESTIONS[at];
+    card.style.setProperty("--c", "var(--c-" + q.axis + ")");
+    $("qnum").textContent = "ข้อ " + String(at + 1).padStart(2, "0") + " / " + QUESTIONS.length;
+    $("qtext").textContent = q.text;
+    optBox.querySelectorAll("button").forEach((b, k) =>
+      b.setAttribute("aria-pressed", String(CHOICES[k].value === ans[at])));
+    $("back").disabled = at === 0;
+    $("count").textContent = String(at + 1).padStart(2, "0") + " / " + QUESTIONS.length;
+
+    const left = QUESTIONS.length - Object.keys(ans).length;
+    $("left").textContent = left ? "เหลืออีก " + left + " ข้อ" : "ตอบครบแล้ว";
+
+    AXES.forEach((x) => {
+      const done = QUESTIONS.filter((q2, j) => q2.axis === x.key && ans[j] !== undefined).length;
+      const seg = document.querySelector('.seg[data-axis="' + x.key + '"]');
+      seg.querySelector("i").style.width = (done / PER_AXIS) * 100 + "%";
+      seg.dataset.live = q.axis === x.key ? "1" : "0";
+    });
+
+    if (animate && !reduce) { card.classList.remove("turn"); void card.offsetWidth; card.classList.add("turn"); }
+  }
+
+  function answer(v) {
+    ans[at] = v;
+    try { localStorage.setItem(KEY, JSON.stringify(ans)); } catch (e) {}
+    if (Object.keys(ans).length === QUESTIONS.length) { draw(false); return show(); }
+    at = at + 1 < QUESTIONS.length && ans[at + 1] === undefined ? at + 1 : firstOpen();
+    draw(true);
+  }
+
+  $("back").onclick = () => { if (at > 0) { at--; draw(true); } };
+  addEventListener("keydown", (e) => {
+    if (!result.hidden) return;
+    if (e.key >= "1" && e.key <= "4") answer(CHOICES[+e.key - 1].value);
+    if (e.key === "Backspace" || e.key === "ArrowLeft") $("back").click();
+  });
+
+  let share = "";
+  function show() {
+    const sum = {};
+    QUESTIONS.forEach((q, i) => { sum[q.axis] = (sum[q.axis] || 0) + q.dir * (ans[i] || 0); });
+    const letters = AXES.map((x) => (sum[x.key] >= 0 ? x.a : x.b));
+    const base = letters.slice(0, 4).join("");
+    const full = base + "-" + letters[4] + letters[5];
+    const [nick, tag] = TYPES[full];
+    const g = GUILDS[guildOf(base)];
+
+    $("rsigil").textContent = g.sigil;
+    $("rguild").textContent = g.name;
+    $("rgline").textContent = g.line;
+    $("rcode").textContent = full;
+    $("rnick").textContent = nick;
+    $("rtag").textContent = tag;
+
+    const ul = $("rstats");
+    ul.querySelectorAll(".stat").forEach((n) => n.remove());
+    AXES.forEach((x) => {
+      const first = sum[x.key] >= 0;
+      const pct = Math.round(50 + (Math.abs(sum[x.key]) / (PER_AXIS * 2)) * 50);
+      const li = document.createElement("li");
+      li.className = "stat";
+      li.style.setProperty("--c", "var(--c-" + x.key + ")");
+      li.innerHTML =
+        '<div class="top2"><span class="nm"></span><span class="val"></span></div>' +
+        '<div class="bar"><i></i></div><p></p>';
+      li.querySelector(".nm").textContent = x.name;
+      li.querySelector(".val").innerHTML = '<span class="win"></span> <span class="pct">' + pct + "%</span>";
+      li.querySelector(".win").textContent = first ? x.labA : x.labB;
+      const fill = li.querySelector(".bar i");
+      fill.style.width = pct + "%";
+      fill.style[first ? "left" : "right"] = "0";
+      li.querySelector("p").textContent = first ? x.descA : x.descB;
+      ul.appendChild(li);
+    });
+
+    share = ("ตำแหน่งของข้าในต่างโลก: " + nick + " (" + full + ")\n" + g.sigil + " " + g.name + " — " + tag).replace(/\u200B/g, "");
+    stage.hidden = true;
+    result.hidden = false;
+    scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
+  }
+
+  $("again").onclick = () => {
+    ans = {}; at = 0;
+    try { localStorage.removeItem(KEY); } catch (e) {}
+    result.hidden = true;
+    stage.hidden = false;
+    draw(true);
+    scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
+  };
+
+  $("copy").onclick = async (e) => {
+    const b = e.currentTarget;
+    try { await navigator.clipboard.writeText(share); b.textContent = "คัดลอกแล้ว"; }
+    catch (err) { b.textContent = "คัดลอกไม่ได้ ลองเลือกข้อความเอา"; }
+    setTimeout(() => { b.textContent = "คัดลอกไปแปะในแชท"; }, 2200);
+  };
+
+  draw(false);
+  if (Object.keys(ans).length === QUESTIONS.length) show();
+</script>
