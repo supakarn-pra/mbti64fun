@@ -6,6 +6,8 @@ import { AXES, QUESTIONS, CHOICES, TYPES, GUILDS, PER_AXIS } from "../data/quiz.
 const seg = new Intl.Segmenter("th", { granularity: "word" });
 const th = (s) => [...seg.segment(s)].map((x) => x.segment).join("​");
 const Q = QUESTIONS.map((q) => ({ ...q, text: th(q.text) }));
+const CODES = Object.keys(TYPES);
+const BASES = [...new Set(CODES.map((c) => c.slice(0, 4)))];
 const T = Object.fromEntries(Object.entries(TYPES).map(([k, v]) => [k, v.map(th)]));
 const A = AXES.map((x) => ({ ...x, labA: th(x.labA), labB: th(x.labB), descA: th(x.descA), descB: th(x.descB) }));
 const G = Object.fromEntries(Object.entries(GUILDS).map(([k, v]) => [k, { ...v, line: th(v.line) }]));
@@ -353,7 +355,8 @@ const axisPalette = `
         <span>{th("กรอกผลที่เคยได้ แล้วทำแบบทดสอบ ดูว่ายังเป็นคนเดิมอยู่ไหม")} <em>ENFP · ENFP-T · ENFP-TC</em></span>
       </button>
       <div class="ask" id="ask-compare">
-        <input id="in-compare" maxlength="9" placeholder="ENFP-TC" autocomplete="off" spellcheck="false" aria-label="ผลที่เคยได้" />
+        <input id="in-compare" list="dl-full" maxlength="9" placeholder="ENFP-TC" autocomplete="off" spellcheck="false" aria-label="ผลที่เคยได้" />
+        <datalist id="dl-full">{CODES.map((c) => <option value={c}>{TYPES[c][0]}</option>)}</datalist>
         <button class="go" id="go-compare">เริ่ม 90 ข้อ</button>
         <p class="err" id="err-compare"></p>
       </div>
@@ -364,7 +367,8 @@ const axisPalette = `
         <span>{th("กรอก 4 ตัวแรกที่เคยได้ วัดเพิ่มเฉพาะจิตใจ (A/T) กับความผูกพัน (C/S)")} <em>ENFP</em></span>
       </button>
       <div class="ask" id="ask-upgrade">
-        <input id="in-upgrade" maxlength="9" placeholder="ENFP" autocomplete="off" spellcheck="false" aria-label="สี่ตัวอักษรเดิม" />
+        <input id="in-upgrade" list="dl-base" maxlength="9" placeholder="ENFP" autocomplete="off" spellcheck="false" aria-label="สี่ตัวอักษรเดิม" />
+        <datalist id="dl-base">{BASES.map((b) => <option value={b}></option>)}</datalist>
         <button class="go" id="go-upgrade">เริ่ม 30 ข้อ</button>
         <p class="err" id="err-upgrade"></p>
       </div>
