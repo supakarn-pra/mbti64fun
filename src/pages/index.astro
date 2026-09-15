@@ -10,7 +10,9 @@ const T = Object.fromEntries(Object.entries(TYPES).map(([k, v]) => [k, v.map(th)
 const A = AXES.map((x) => ({ ...x, labA: th(x.labA), labB: th(x.labB), descA: th(x.descA), descB: th(x.descB) }));
 const G = Object.fromEntries(Object.entries(GUILDS).map(([k, v]) => [k, { ...v, line: th(v.line) }]));
 
-const vars = (mode) => AXES.map((x) => `--c-${x.key}:${x[mode]};`).join("");
+const vars = (mode) =>
+  AXES.map((x) => `--c-${x.key}:${x[mode]};`).join("") +
+  Object.entries(GUILDS).map(([k, g]) => `--g-${k}:${g[mode]};`).join("");
 const axisPalette = `
 :root{${vars("light")}}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){${vars("dark")}}}
@@ -272,21 +274,51 @@ const axisPalette = `
   .vs li[data-same="0"] .tagx { color: var(--c); }
   .kept { margin: 16px 0 0; font-size: 13px; color: var(--ink-faint); line-height: 1.6; }
 
-  /* ---------- หน้ารวม 64 ตำแหน่ง ---------- */
+  /* ---------- ทำเนียบ 64 ตำแหน่ง ---------- */
   .dexlink { display: block; margin: 4px auto 0; font-family: inherit; font-size: 14px; color: var(--ink-soft); background: none; border: none; cursor: pointer; text-decoration: underline; text-underline-offset: 4px; }
   .dexlink:hover { color: var(--gold); }
-  .dexbar { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 4px; }
+  .dexbar { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 2px; }
   .dexbar h2 { font-family: Srisakdi, Sarabun, serif; font-weight: 700; font-size: clamp(24px, 6vw, 32px); margin: 0; line-height: 1.35; }
-  .gh { display: flex; align-items: center; gap: 9px; margin: 28px 0 12px; font-family: Srisakdi, Sarabun, serif; font-weight: 700; font-size: 19px; line-height: 1.4; }
-  .gh .sg { width: 28px; height: 28px; flex: none; display: grid; place-items: center; font-size: 15px; color: var(--gold); border: 1px solid var(--gold); border-radius: 50%; font-family: Sarabun, sans-serif; }
-  .gh em { font-style: normal; font-family: "IBM Plex Mono", monospace; font-size: 11px; color: var(--ink-faint); margin-left: auto; font-weight: 400; }
-  .dexlist { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(215px, 1fr)); gap: 9px; }
-  .dexlist li { background: var(--surface); border: 1px solid var(--line); border-radius: 3px; padding: 12px 14px; }
-  .dexlist li[data-me="1"] { border-color: var(--gold); background: color-mix(in srgb, var(--gold) 9%, var(--surface)); }
-  .dexlist .dc { font-family: "IBM Plex Mono", monospace; font-size: 11.5px; letter-spacing: .14em; color: var(--gold); }
-  .dexlist .dn { display: block; font-family: Srisakdi, Sarabun, serif; font-weight: 700; font-size: 16.5px; line-height: 1.45; margin: 1px 0 3px; }
-  .dexlist .dt { display: block; font-size: 12.5px; color: var(--ink-soft); line-height: 1.55; }
-  .dexlist .me { display: inline-block; font-size: 11px; color: var(--gold); border: 1px solid var(--gold); border-radius: 999px; padding: 0 7px; margin-top: 6px; }
+  .dexsub { margin: 0 0 6px; font-size: 13.5px; color: var(--ink-faint); }
+
+  .dexsec { margin-top: 30px; }
+  .gh {
+    display: flex; align-items: center; gap: 11px; margin: 0 0 12px; padding: 11px 14px;
+    border: 1px solid color-mix(in srgb, var(--g) 40%, var(--line));
+    border-left: 4px solid var(--g);
+    border-radius: 3px; background: color-mix(in srgb, var(--g) 9%, var(--surface));
+  }
+  .gh .sg {
+    width: 30px; height: 30px; flex: none; display: grid; place-items: center; font-size: 15px;
+    color: var(--on-g); background: var(--g); border-radius: 50%; font-family: Sarabun, sans-serif;
+  }
+  .gh .gn { font-family: Srisakdi, Sarabun, serif; font-weight: 700; font-size: 19px; line-height: 1.35; color: var(--g); }
+  .gh .gl { display: block; font-family: Sarabun, sans-serif; font-weight: 400; font-size: 12px; color: var(--ink-faint); line-height: 1.5; }
+  .gh em { font-style: normal; font-family: "IBM Plex Mono", monospace; font-size: 11px; color: var(--ink-faint); margin-left: auto; flex: none; align-self: flex-start; }
+
+  .dexlist { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; }
+  .dexlist li {
+    background: var(--surface); border: 1px solid var(--line); border-top: 3px solid var(--g);
+    border-radius: 3px; padding: 13px 14px 12px; display: flex; flex-direction: column;
+  }
+  .dexlist li[data-me="1"] { border-color: var(--g); box-shadow: 0 0 0 2px color-mix(in srgb, var(--g) 22%, transparent); }
+  .crow { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }
+  .crow .av {
+    width: 26px; height: 26px; flex: none; display: grid; place-items: center; font-size: 13px;
+    color: var(--g); border: 1px solid color-mix(in srgb, var(--g) 50%, var(--line)); border-radius: 50%;
+  }
+  .crow .dc { font-family: "IBM Plex Mono", monospace; font-size: 11.5px; letter-spacing: .12em; color: var(--g); }
+  .dexlist .dn { font-family: Srisakdi, Sarabun, serif; font-weight: 700; font-size: 16.5px; line-height: 1.45; margin-bottom: 4px; }
+  .dexlist .dt { font-size: 12.5px; color: var(--ink-soft); line-height: 1.55; }
+  .chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; padding-top: 9px; border-top: 1px dashed var(--line); }
+  .chips span {
+    font-size: 11px; line-height: 1.7; color: var(--ink-faint);
+    border: 1px solid var(--line); border-radius: 999px; padding: 0 8px;
+  }
+  .dexlist li[data-me="1"] .me {
+    align-self: flex-start; font-size: 11px; color: var(--on-g); background: var(--g);
+    border-radius: 999px; padding: 1px 9px; margin-top: 10px;
+  }
 </style>
 
 <div class="wrap">
@@ -345,6 +377,7 @@ const axisPalette = `
       <h2 class="fx">ทำเนียบ 64 ตำแหน่ง</h2>
       <button class="ghost" id="dex-close">← กลับ</button>
     </div>
+    <p class="dexsub">{th("ทะเบียนพนักงานทั้งอาณาจักร แบ่งตาม 4 สังกัด สังกัดละ 16 ตำแหน่ง")}</p>
     <div id="dex-body"></div>
   </section>
 
@@ -697,29 +730,46 @@ const axisPalette = `
   /* ---------- ทำเนียบ 64 ตำแหน่ง ---------- */
   let myCode = "";
   const GUILD_ORDER = ["SP", "SJ", "NF", "NT"];
+  // ป้ายนิสัยสองแกนลึกจากตัวอักษรท้ายรหัส เช่น -AC = นิ่ง มั่นใจ + ทำงานกับทีม
+  const deepLabel = (k, letter) => (AXES[k].a === letter ? AXES[k].labA : AXES[k].labB);
+
   function buildDex() {
     const body = $("dex-body");
     if (body.childElementCount) return;
     GUILD_ORDER.forEach((key) => {
       const g = GUILDS[key];
-      const h = document.createElement("h3");
+      const sec = document.createElement("section");
+      sec.className = "dexsec";
+      sec.style.setProperty("--g", "var(--g-" + key + ")");
+      sec.style.setProperty("--on-g", "var(--surface)");
+
+      const h = document.createElement("div");
       h.className = "gh";
-      h.innerHTML = '<span class="sg"></span><span class="gn"></span><em>16 ตำแหน่ง</em>';
+      h.innerHTML = '<span class="sg"></span><span><span class="gn"></span><span class="gl"></span></span><em>16 ตำแหน่ง</em>';
       h.querySelector(".sg").textContent = g.sigil;
       h.querySelector(".gn").textContent = g.name;
+      h.querySelector(".gl").textContent = g.line;
+
       const ul = document.createElement("ul");
       ul.className = "dexlist";
       Object.keys(TYPES).filter((c) => guildOf(c.slice(0, 4)) === key).forEach((c) => {
         const [nick, tag] = TYPES[c];
         const li = document.createElement("li");
         li.dataset.code = c;
-        li.innerHTML = '<span class="dc"></span><span class="dn"></span><span class="dt"></span>';
+        li.innerHTML =
+          '<div class="crow"><span class="av"></span><span class="dc"></span></div>' +
+          '<span class="dn"></span><span class="dt"></span>' +
+          '<div class="chips"><span class="c1"></span><span class="c2"></span></div>';
+        li.querySelector(".av").textContent = g.sigil;
         li.querySelector(".dc").textContent = c;
         li.querySelector(".dn").textContent = nick;
         li.querySelector(".dt").textContent = tag;
+        li.querySelector(".c1").textContent = deepLabel(4, c[5]);
+        li.querySelector(".c2").textContent = deepLabel(5, c[6]);
         ul.appendChild(li);
       });
-      body.append(h, ul);
+      sec.append(h, ul);
+      body.appendChild(sec);
     });
   }
   function openDex() {
