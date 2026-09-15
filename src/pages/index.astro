@@ -41,6 +41,7 @@ const axisPalette = `
     --ink-faint: #8C8376;
     --gold: #8A6A15;
     --on-gold: #FFFCF4;
+    --blood: #8E2C33;
     --warn: #A33C1E;
     --shadow: 0 1px 2px rgba(36, 32, 28, .06), 0 20px 44px -26px rgba(36, 32, 28, .5);
   }
@@ -54,6 +55,7 @@ const axisPalette = `
       --ink-faint: #7E7668;
       --gold: #D9B15A;
       --on-gold: #1A150A;
+      --blood: #E58089;
       --warn: #F0956F;
       --shadow: 0 1px 2px rgba(0, 0, 0, .5), 0 20px 44px -26px rgba(0, 0, 0, .95);
     }
@@ -67,6 +69,7 @@ const axisPalette = `
     --ink-faint: #7E7668;
     --gold: #D9B15A;
     --on-gold: #1A150A;
+    --blood: #E58089;
     --warn: #F0956F;
     --shadow: 0 1px 2px rgba(0, 0, 0, .5), 0 20px 44px -26px rgba(0, 0, 0, .95);
   }
@@ -157,7 +160,8 @@ const axisPalette = `
   }
   @media (max-width: 430px) { .key { display: none; } }
 
-  .under { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 16px; }
+  .under { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 16px; }
+  .under .left { flex: 1; text-align: center; }
   .ghost { font-family: inherit; font-size: 14px; color: var(--ink-soft); background: none; border: none; cursor: pointer; padding: 6px 0; }
   .ghost:hover { color: var(--ink); }
   .ghost:disabled { opacity: .35; cursor: default; }
@@ -209,7 +213,21 @@ const axisPalette = `
   @media (prefers-reduced-motion: reduce) { *, *::before { animation: none !important; transition: none !important; } }
 
   /* ---------- หน้าเลือกโหมด ---------- */
-  .start { display: flex; flex-direction: column; gap: 12px; padding-top: 6px; }
+  .start { display: flex; flex-direction: column; gap: 14px; padding-top: 18px; }
+  .len { display: flex; gap: 8px; }
+  .len button {
+    flex: 1; font-family: inherit; font-size: 14.5px; color: var(--ink-soft);
+    background: var(--surface); border: 1px solid var(--line); border-radius: 999px;
+    padding: 9px 14px; cursor: pointer; transition: border-color .15s, color .15s;
+  }
+  .len button i { font-style: normal; font-family: "IBM Plex Mono", monospace; font-size: 12px; opacity: .7; font-variant-numeric: tabular-nums; }
+  .len button[data-rush="0"] { --t: var(--gold); }
+  .len button[data-rush="1"] { --t: var(--blood); }
+  .len button:hover { border-color: var(--t); }
+  .len button[aria-pressed="true"] { border-color: var(--t); color: var(--t); font-weight: 600; background: color-mix(in srgb, var(--t) 8%, var(--surface)); }
+  .len button:focus-visible { outline: 2px solid var(--t); outline-offset: 2px; }
+  /* เลือกฉบับรีบแล้ว ให้ทั้งหน้าแรกเปลี่ยนเป็นโทนแดงเลือดหมู */
+  .start[data-rush="1"] { --gold: var(--blood); --on-gold: #FFF4F2; }
   .mode {
     display: block; width: 100%; text-align: left; font-family: inherit; color: var(--ink);
     background: var(--surface); border: 1px solid var(--line); border-radius: 4px;
@@ -218,11 +236,14 @@ const axisPalette = `
   .mode:hover { border-color: var(--gold); transform: translateY(-2px); }
   .mode:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
   .mode[aria-expanded="true"] { border-color: var(--gold); }
-  .mode b { display: block; font-family: Srisakdi, Sarabun, serif; font-weight: 700; font-size: 21px; line-height: 1.4; }
+  .mode b { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-family: Srisakdi, Sarabun, serif; font-weight: 700; font-size: 21px; line-height: 1.4; }
+  .mode b em { flex: none; font-variant-numeric: tabular-nums; }
+  .ask .go { font-variant-numeric: tabular-nums; }
   .mode span { display: block; font-size: 13.5px; color: var(--ink-soft); line-height: 1.6; margin-top: 3px; }
   .mode em { font-style: normal; font-family: "IBM Plex Mono", monospace; font-size: 12px; color: var(--gold); }
-  .ask { display: none; gap: 9px; padding: 0 20px 18px; flex-wrap: wrap; }
-  .ask[data-open="1"] { display: flex; }
+  .ask { display: none; gap: 9px; padding-inline: 4px; margin-top: 11px; flex-wrap: wrap; }
+  .ask[data-open="1"] { display: flex; animation: drop .24s ease; }
+  @keyframes drop { from { opacity: 0; transform: translateY(-10px); } }
   .ask input {
     flex: 1; min-width: 130px; font-family: "IBM Plex Mono", monospace; font-size: 16px;
     text-transform: uppercase; color: var(--ink); background: var(--ground);
@@ -250,6 +271,22 @@ const axisPalette = `
   .vs li[data-same="0"] .mv { color: var(--c); font-weight: 600; }
   .vs li[data-same="0"] .tagx { color: var(--c); }
   .kept { margin: 16px 0 0; font-size: 13px; color: var(--ink-faint); line-height: 1.6; }
+
+  /* ---------- หน้ารวม 64 ตำแหน่ง ---------- */
+  .dexlink { display: block; margin: 4px auto 0; font-family: inherit; font-size: 14px; color: var(--ink-soft); background: none; border: none; cursor: pointer; text-decoration: underline; text-underline-offset: 4px; }
+  .dexlink:hover { color: var(--gold); }
+  .dexbar { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 4px; }
+  .dexbar h2 { font-family: Srisakdi, Sarabun, serif; font-weight: 700; font-size: clamp(24px, 6vw, 32px); margin: 0; line-height: 1.35; }
+  .gh { display: flex; align-items: center; gap: 9px; margin: 28px 0 12px; font-family: Srisakdi, Sarabun, serif; font-weight: 700; font-size: 19px; line-height: 1.4; }
+  .gh .sg { width: 28px; height: 28px; flex: none; display: grid; place-items: center; font-size: 15px; color: var(--gold); border: 1px solid var(--gold); border-radius: 50%; font-family: Sarabun, sans-serif; }
+  .gh em { font-style: normal; font-family: "IBM Plex Mono", monospace; font-size: 11px; color: var(--ink-faint); margin-left: auto; font-weight: 400; }
+  .dexlist { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(215px, 1fr)); gap: 9px; }
+  .dexlist li { background: var(--surface); border: 1px solid var(--line); border-radius: 3px; padding: 12px 14px; }
+  .dexlist li[data-me="1"] { border-color: var(--gold); background: color-mix(in srgb, var(--gold) 9%, var(--surface)); }
+  .dexlist .dc { font-family: "IBM Plex Mono", monospace; font-size: 11.5px; letter-spacing: .14em; color: var(--gold); }
+  .dexlist .dn { display: block; font-family: Srisakdi, Sarabun, serif; font-weight: 700; font-size: 16.5px; line-height: 1.45; margin: 1px 0 3px; }
+  .dexlist .dt { display: block; font-size: 12.5px; color: var(--ink-soft); line-height: 1.55; }
+  .dexlist .me { display: inline-block; font-size: 11px; color: var(--gold); border: 1px solid var(--gold); border-radius: 999px; padding: 0 7px; margin-top: 6px; }
 </style>
 
 <div class="wrap">
@@ -268,16 +305,20 @@ const axisPalette = `
   <p class="intro" id="intro">{th("แบบประเมินตำแหน่งประจำปี · ฝ่ายบุคคลแห่งอาณาจักร")}</p>
 
   <section class="start" id="start">
+    <div class="len" role="group" aria-label="ความยาวแบบทดสอบ">
+      <button data-rush="0" aria-pressed="true">เต็มยศ <i>90</i></button>
+      <button data-rush="1" aria-pressed="false">รีบไปทำงาน <i>30</i></button>
+    </div>
     <div>
       <button class="mode" id="m-new" aria-expanded="false">
-        <b>แบบทดสอบใหม่</b>
-        <span>{th("ทำครบ 90 ข้อ วัดใหม่ทั้ง 6 แกน ได้ตำแหน่งเต็มยศ ใช้เวลาราว 8 นาที")}</span>
+        <b>แบบทดสอบใหม่<em id="n-new"></em></b>
+        <span>{th("วัดใหม่ทั้ง 6 แกน ได้ตำแหน่งแบบเต็ม ๆ")}</span>
       </button>
     </div>
     <div>
       <button class="mode" id="m-compare" aria-expanded="false">
-        <b>เทียบกับร่างเก่า</b>
-        <span>{th("กรอกผลที่เคยได้ แล้วทำ 90 ข้อ ดูว่ายังเป็นคนเดิมอยู่ไหม")} <em>ENFP · ENFP-T · ENFP-TC</em></span>
+        <b>เทียบกับร่างเก่า<em id="n-compare"></em></b>
+        <span>{th("กรอกผลที่เคยได้ แล้วทำแบบทดสอบ ดูว่ายังเป็นคนเดิมอยู่ไหม")} <em>ENFP · ENFP-T · ENFP-TC</em></span>
       </button>
       <div class="ask" id="ask-compare">
         <input id="in-compare" maxlength="9" placeholder="ENFP-TC" autocomplete="off" spellcheck="false" aria-label="ผลที่เคยได้" />
@@ -287,8 +328,8 @@ const axisPalette = `
     </div>
     <div>
       <button class="mode" id="m-upgrade" aria-expanded="false">
-        <b>อัพเกรดร่างเดิม</b>
-        <span>{th("กรอก 4 ตัวแรกที่เคยได้ แล้วทำแค่ 30 ข้อ วัดเพิ่มเฉพาะจิตใจ (A/T) กับความผูกพัน (C/S)")} <em>ENFP</em></span>
+        <b>อัพเกรดร่างเดิม<em id="n-upgrade"></em></b>
+        <span>{th("กรอก 4 ตัวแรกที่เคยได้ วัดเพิ่มเฉพาะจิตใจ (A/T) กับความผูกพัน (C/S)")} <em>ENFP</em></span>
       </button>
       <div class="ask" id="ask-upgrade">
         <input id="in-upgrade" maxlength="9" placeholder="ENFP" autocomplete="off" spellcheck="false" aria-label="สี่ตัวอักษรเดิม" />
@@ -296,6 +337,15 @@ const axisPalette = `
         <p class="err" id="err-upgrade"></p>
       </div>
     </div>
+    <button class="dexlink" id="dex-open">ดูทั้ง 64 ตำแหน่ง</button>
+  </section>
+
+  <section id="dex" hidden>
+    <div class="dexbar">
+      <h2 class="fx">ทำเนียบ 64 ตำแหน่ง</h2>
+      <button class="ghost" id="dex-close">← กลับ</button>
+    </div>
+    <div id="dex-body"></div>
   </section>
 
   <div class="stage" id="stage" hidden>
@@ -307,6 +357,7 @@ const axisPalette = `
     <div class="under">
       <button class="ghost" id="back" disabled>← ย้อนกลับ</button>
       <span class="left" id="left"></span>
+      <button class="ghost" id="home">กลับบ้าน</button>
     </div>
   </div>
 
@@ -334,6 +385,7 @@ const axisPalette = `
         <button id="copy">คัดลอกไปแปะในแชท</button>
         <button id="again">ประเมินใหม่</button>
         <button id="share">แชร์ให้ผู้อื่น</button>
+        <button id="dex-open2">ดูทั้ง 64 ตำแหน่ง</button>
       </div>
     </div>
   </section>
@@ -353,7 +405,7 @@ const axisPalette = `
   const UPGRADE_AXES = ["AT", "CS"];
 
   // S.mode: new | compare | upgrade, S.old: ผลเดิมที่กรอกไว้, S.ans: คำตอบ (key = index ใน QUESTIONS)
-  let S = { mode: null, old: null, ans: {} };
+  let S = { mode: null, old: null, rush: false, ans: {} };
   try { Object.assign(S, JSON.parse(localStorage.getItem(KEY) || "{}")); } catch (e) {}
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
 
@@ -392,6 +444,50 @@ const axisPalette = `
     });
     if (which) $("in-" + which).focus();
   }
+  // ฉบับรีบ: หยิบข้อที่ 1, 4, 7, 10, 13 ของแต่ละแกน (แกนละ 5 ข้อ) ยังได้ทั้งสองทิศทางครบ
+  let rush = false;
+  const counts = () => ({ full: rush ? 30 : 90, up: rush ? 10 : 30 });
+  // ไล่เลขทีละขั้นตอนสลับโหมด 90 -> 89 -> ... -> 30
+  function countTo(el, to, fmt) {
+    const from = el._n === undefined ? to : el._n;
+    el._n = to;
+    cancelAnimationFrame(el._raf);
+    if (reduce || from === to) { el.textContent = fmt(to); return; }
+    // ไล่แบบเกือบเชิงเส้น จะได้เห็นเลขระหว่างทางครบ ๆ ไม่ใช่กระโดดไปค้างที่ปลายทาง
+    const t0 = performance.now(), dur = 650;
+    const step = (t) => {
+      const k = Math.min(1, (t - t0) / dur);
+      const e = k < .5 ? 1.15 * k : 1 - Math.pow(1 - k, 2) * .7;
+      el.textContent = fmt(Math.round(from + (to - from) * Math.min(1, e)));
+      if (k < 1) el._raf = requestAnimationFrame(step);
+    };
+    el._raf = requestAnimationFrame(step);
+  }
+  const nQ = (n) => n + " ข้อ";
+  const nGo = (n) => "เริ่ม " + n + " ข้อ";
+  function syncCounts() {
+    const c = counts();
+    countTo($("n-new"), c.full, nQ);
+    countTo($("n-compare"), c.full, nQ);
+    countTo($("n-upgrade"), c.up, nQ);
+    countTo($("go-compare"), c.full, nGo);
+    countTo($("go-upgrade"), c.up, nGo);
+  }
+  function paintLen() {
+    start.dataset.rush = rush ? "1" : "0";
+    document.querySelectorAll(".len button").forEach((x) =>
+      x.setAttribute("aria-pressed", String((x.dataset.rush === "1") === rush)));
+  }
+  document.querySelectorAll(".len button").forEach((b) => {
+    b.onclick = () => {
+      rush = b.dataset.rush === "1";
+      paintLen();
+      syncCounts();
+    };
+  });
+  paintLen();
+  syncCounts();
+
   $("m-new").onclick = () => begin("new", null);
   $("m-compare").onclick = () => openAsk("compare");
   $("m-upgrade").onclick = () => openAsk("upgrade");
@@ -408,16 +504,35 @@ const axisPalette = `
     $("in-" + m).onkeydown = (e) => { if (e.key === "Enter") submit(); };
   });
 
+  const sig = (o) => (o ? o.base + o.AT + o.CS : "");
   function begin(mode, old) {
-    S = { mode, old, ans: {} };
+    const same = S.mode === mode && !!S.rush === rush && sig(S.old) === sig(old);
+    S = { mode, old, rush, ans: same ? S.ans : {} };
     save();
     run();
   }
 
+  // กลับบ้านแบบไม่ล้างคำตอบ กดโหมดเดิมเข้ามาใหม่จะทำต่อจากข้อที่ค้างไว้
+  function home() {
+    stage.hidden = true;
+    result.hidden = true;
+    $("dex").hidden = true;
+    start.hidden = false;
+    $("segs").hidden = false;
+    $("count").textContent = "";
+    $("intro").textContent = "แบบประเมินตำแหน่งประจำปี · ฝ่ายบุคคลแห่งอาณาจักร";
+    scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
+  }
+  $("home").onclick = home;
+
   /* ---------- ทำแบบทดสอบ ---------- */
   function run() {
+    rush = !!S.rush;
+    paintLen();
+    syncCounts();
     plan = QUESTIONS.map((q, i) => i).filter((i) =>
-      S.mode === "upgrade" ? UPGRADE_AXES.includes(QUESTIONS[i].axis) : true);
+      (S.mode === "upgrade" ? UPGRADE_AXES.includes(QUESTIONS[i].axis) : true) &&
+      (S.rush ? Math.floor(i / AXES.length) % 3 === 0 : true));
     const live = new Set(plan.map((i) => QUESTIONS[i].axis));
     AXES.forEach((x) => { document.querySelector('.seg[data-axis="' + x.key + '"]').hidden = !live.has(x.key); });
 
@@ -425,11 +540,12 @@ const axisPalette = `
     result.hidden = true;
     stage.hidden = false;
     $("segs").hidden = false;
-    $("intro").textContent = S.mode === "upgrade"
-      ? "อัพเกรดร่าง " + S.old.base + " · วัดเพิ่ม 2 แกน"
+    const tail = " · " + plan.length + " ข้อ" + (S.rush ? " (ฉบับรีบ)" : "");
+    $("intro").textContent = (S.mode === "upgrade"
+      ? "อัพเกรดร่าง " + S.old.base
       : S.mode === "compare"
-        ? "เทียบกับร่างเก่า " + code(S.old) + " · 90 ข้อ"
-        : "แบบประเมินตำแหน่งประจำปี · ฝ่ายบุคคลแห่งอาณาจักร";
+        ? "เทียบกับร่างเก่า " + code(S.old)
+        : "แบบประเมินตำแหน่งประจำปี") + tail;
 
     at = Math.max(0, plan.findIndex((i) => S.ans[i] === undefined));
     if (plan.every((i) => S.ans[i] !== undefined)) return show();
@@ -561,6 +677,7 @@ const axisPalette = `
     share = ("ตำแหน่งของข้าในต่างโลก: " + nick + " (" + full + ")\n" + g.sigil + " " + g.name + " — " + tag +
       (S.mode === "compare" ? "\n(ร่างเก่า " + code(S.old) + ")" : "")).replace(/​/g, "");
 
+    myCode = full;
     stage.hidden = true;
     start.hidden = true;
     result.hidden = false;
@@ -570,17 +687,63 @@ const axisPalette = `
   }
 
   $("again").onclick = () => {
-    S = { mode: null, old: null, ans: {} };
+    S = { mode: null, old: null, rush: false, ans: {} };
     save();
-    result.hidden = true;
-    stage.hidden = true;
-    start.hidden = false;
-    $("segs").hidden = false;
     openAsk(null);
-    $("count").textContent = "";
-    $("intro").textContent = "แบบประเมินตำแหน่งประจำปี · ฝ่ายบุคคลแห่งอาณาจักร";
     document.querySelectorAll(".seg").forEach((s2) => { s2.hidden = false; s2.querySelector("i").style.width = "0"; });
+    home();
+  };
+
+  /* ---------- ทำเนียบ 64 ตำแหน่ง ---------- */
+  let myCode = "";
+  const GUILD_ORDER = ["SP", "SJ", "NF", "NT"];
+  function buildDex() {
+    const body = $("dex-body");
+    if (body.childElementCount) return;
+    GUILD_ORDER.forEach((key) => {
+      const g = GUILDS[key];
+      const h = document.createElement("h3");
+      h.className = "gh";
+      h.innerHTML = '<span class="sg"></span><span class="gn"></span><em>16 ตำแหน่ง</em>';
+      h.querySelector(".sg").textContent = g.sigil;
+      h.querySelector(".gn").textContent = g.name;
+      const ul = document.createElement("ul");
+      ul.className = "dexlist";
+      Object.keys(TYPES).filter((c) => guildOf(c.slice(0, 4)) === key).forEach((c) => {
+        const [nick, tag] = TYPES[c];
+        const li = document.createElement("li");
+        li.dataset.code = c;
+        li.innerHTML = '<span class="dc"></span><span class="dn"></span><span class="dt"></span>';
+        li.querySelector(".dc").textContent = c;
+        li.querySelector(".dn").textContent = nick;
+        li.querySelector(".dt").textContent = tag;
+        ul.appendChild(li);
+      });
+      body.append(h, ul);
+    });
+  }
+  function openDex() {
+    buildDex();
+    $("dex-body").querySelectorAll("li").forEach((li) => {
+      const me = li.dataset.code === myCode;
+      li.dataset.me = me ? "1" : "0";
+      const old = li.querySelector(".me");
+      if (me && !old) { const b = document.createElement("span"); b.className = "me"; b.textContent = "ตำแหน่งของคุณ"; li.appendChild(b); }
+      if (!me && old) old.remove();
+    });
+    start.hidden = true;
+    stage.hidden = true;
+    result.hidden = true;
+    $("segs").hidden = true;
+    $("dex").hidden = false;
     scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
+  }
+  $("dex-open").onclick = openDex;
+  $("dex-open2").onclick = openDex;
+  $("dex-close").onclick = () => {
+    $("dex").hidden = true;
+    if (myCode && S.mode) { result.hidden = false; scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" }); }
+    else home();
   };
 
   $("share").onclick = async (e) => {
