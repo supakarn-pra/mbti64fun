@@ -181,13 +181,16 @@ const axisPalette = `
 
   .stats { list-style: none; margin: 26px 0 0; padding: 20px 0 0; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 17px; }
   .stats .head { font-size: 12px; color: var(--ink-faint); margin: -4px 0 0; }
-  .stat .top2 { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
-  .stat .nm { font-size: 13px; color: var(--ink-faint); }
-  .stat .val { font-size: 15px; color: var(--c); font-weight: 600; text-align: right; }
-  .bar { height: 7px; border-radius: 4px; background: var(--line); margin: 6px 0 7px; position: relative; overflow: hidden; }
-  .bar i { position: absolute; top: 0; bottom: 0; background: var(--c); }
-  .stat p { margin: 0; font-size: 13.5px; color: var(--ink-soft); line-height: 1.6; }
-  .pct { font-family: "IBM Plex Mono", monospace; font-variant-numeric: tabular-nums; color: var(--ink-faint); font-weight: 400; font-size: 12px; }
+  .stat .nm { font-size: 12.5px; color: var(--ink-faint); display: block; margin-bottom: 4px; }
+  .pole { display: flex; align-items: baseline; gap: 8px; font-size: 14.5px; line-height: 1.5; }
+  .pole .lt { font-family: "IBM Plex Mono", monospace; font-size: 12px; flex: none; opacity: .75; }
+  .pole .pl { flex: 1; min-width: 0; }
+  .pole .pc { font-family: "IBM Plex Mono", monospace; font-variant-numeric: tabular-nums; flex: none; }
+  .pole[data-win="1"] { color: var(--c); font-weight: 600; }
+  .pole[data-win="0"] { color: var(--ink-faint); }
+  .bar { height: 7px; border-radius: 4px; background: var(--line); margin: 5px 0; position: relative; overflow: hidden; }
+  .bar i { position: absolute; top: 0; bottom: 0; left: 0; background: var(--c); }
+  .stat p { margin: 6px 0 0; font-size: 13.5px; color: var(--ink-soft); line-height: 1.6; }
 
   .tools { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 26px; }
   .tools button { font-family: inherit; font-size: 14px; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 3px; padding: 9px 18px; cursor: pointer; }
@@ -212,6 +215,8 @@ const axisPalette = `
   </div>
 
   <p class="intro">{th("แบบประเมินตำแหน่งประจำปี · ฝ่ายบุคคลแห่งอาณาจักร")}</p>
+
+  <br />
 
   <div class="stage">
     <section class="card" id="card">
@@ -242,6 +247,7 @@ const axisPalette = `
       <div class="tools">
         <button id="copy">คัดลอกไปแปะในแชท</button>
         <button id="again">ประเมินใหม่</button>
+        <button id="share">แชร์ให้ผู้อื่น</button>
       </div>
     </div>
   </section>
@@ -340,19 +346,21 @@ const axisPalette = `
     ul.querySelectorAll(".stat").forEach((n) => n.remove());
     AXES.forEach((x) => {
       const first = sum[x.key] >= 0;
-      const pct = Math.round(50 + (Math.abs(sum[x.key]) / (PER_AXIS * 2)) * 50);
+      const pct = Math.round(50 + (sum[x.key] / (PER_AXIS * 2)) * 50);
       const li = document.createElement("li");
       li.className = "stat";
       li.style.setProperty("--c", "var(--c-" + x.key + ")");
       li.innerHTML =
-        '<div class="top2"><span class="nm"></span><span class="val"></span></div>' +
-        '<div class="bar"><i></i></div><p></p>';
+        '<span class="nm"></span>' +
+        '<div class="pole" data-win="' + (first ? 1 : 0) + '"><span class="lt">(' + x.a + ')</span>' +
+        '<span class="pl a"></span><span class="pc">' + pct + '%</span></div>' +
+        '<div class="bar"><i></i></div>' +
+        '<div class="pole" data-win="' + (first ? 0 : 1) + '"><span class="lt">(' + x.b + ')</span>' +
+        '<span class="pl b"></span><span class="pc">' + (100 - pct) + '%</span></div><p></p>';
       li.querySelector(".nm").textContent = x.name;
-      li.querySelector(".val").innerHTML = '<span class="win"></span> <span class="pct">' + pct + "%</span>";
-      li.querySelector(".win").textContent = first ? x.labA : x.labB;
-      const fill = li.querySelector(".bar i");
-      fill.style.width = pct + "%";
-      fill.style[first ? "left" : "right"] = "0";
+      li.querySelector(".a").textContent = x.labA;
+      li.querySelector(".b").textContent = x.labB;
+      li.querySelector(".bar i").style.width = pct + "%";
       li.querySelector("p").textContent = first ? x.descA : x.descB;
       ul.appendChild(li);
     });
@@ -370,6 +378,18 @@ const axisPalette = `
     stage.hidden = false;
     draw(true);
     scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
+  };
+
+  $("share").onclick = async (e) => {
+    const b = e.currentTarget;
+    const payload = { title: "64 ตำแหน่งในต่างโลก", text: share, url: location.href };
+    if (navigator.share) {
+      try { await navigator.share(payload); return; }
+      catch (err) { if (err && err.name === "AbortError") return; } // ผู้ใช้กดปิดเอง ไม่ต้องทำอะไรต่อ
+    }
+    try { await navigator.clipboard.writeText(share + "\n" + location.href); b.textContent = "คัดลอกลิงก์แล้ว"; }
+    catch (err) { b.textContent = "แชร์ไม่ได้ ลองคัดลอกเอา"; }
+    setTimeout(() => { b.textContent = "แชร์ให้ผู้อื่น"; }, 2200);
   };
 
   $("copy").onclick = async (e) => {
