@@ -40,6 +40,8 @@ const axisPalette = `
     --ink-soft: #625A50;
     --ink-faint: #8C8376;
     --gold: #8A6A15;
+    --on-gold: #FFFCF4;
+    --warn: #A33C1E;
     --shadow: 0 1px 2px rgba(36, 32, 28, .06), 0 20px 44px -26px rgba(36, 32, 28, .5);
   }
   @media (prefers-color-scheme: dark) {
@@ -51,6 +53,8 @@ const axisPalette = `
       --ink-soft: #ADA598;
       --ink-faint: #7E7668;
       --gold: #D9B15A;
+      --on-gold: #1A150A;
+      --warn: #F0956F;
       --shadow: 0 1px 2px rgba(0, 0, 0, .5), 0 20px 44px -26px rgba(0, 0, 0, .95);
     }
   }
@@ -62,10 +66,14 @@ const axisPalette = `
     --ink-soft: #ADA598;
     --ink-faint: #7E7668;
     --gold: #D9B15A;
+    --on-gold: #1A150A;
+    --warn: #F0956F;
     --shadow: 0 1px 2px rgba(0, 0, 0, .5), 0 20px 44px -26px rgba(0, 0, 0, .95);
   }
 
   * { box-sizing: border-box; }
+  /* ต้องมี ไม่งั้น hidden ไม่ชนะ display:flex ของ .start / .stage */
+  [hidden] { display: none !important; }
   body {
     background: var(--ground);
     color: var(--ink);
@@ -199,13 +207,56 @@ const axisPalette = `
 
   footer { margin-top: 32px; font-size: 12.5px; color: var(--ink-faint); line-height: 1.7; text-align: center; }
   @media (prefers-reduced-motion: reduce) { *, *::before { animation: none !important; transition: none !important; } }
+
+  /* ---------- หน้าเลือกโหมด ---------- */
+  .start { display: flex; flex-direction: column; gap: 12px; padding-top: 6px; }
+  .mode {
+    display: block; width: 100%; text-align: left; font-family: inherit; color: var(--ink);
+    background: var(--surface); border: 1px solid var(--line); border-radius: 4px;
+    padding: 18px 20px; cursor: pointer; transition: border-color .15s, transform .1s;
+  }
+  .mode:hover { border-color: var(--gold); transform: translateY(-2px); }
+  .mode:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+  .mode[aria-expanded="true"] { border-color: var(--gold); }
+  .mode b { display: block; font-family: Srisakdi, Sarabun, serif; font-weight: 700; font-size: 21px; line-height: 1.4; }
+  .mode span { display: block; font-size: 13.5px; color: var(--ink-soft); line-height: 1.6; margin-top: 3px; }
+  .mode em { font-style: normal; font-family: "IBM Plex Mono", monospace; font-size: 12px; color: var(--gold); }
+  .ask { display: none; gap: 9px; padding: 0 20px 18px; flex-wrap: wrap; }
+  .ask[data-open="1"] { display: flex; }
+  .ask input {
+    flex: 1; min-width: 130px; font-family: "IBM Plex Mono", monospace; font-size: 16px;
+    text-transform: uppercase; color: var(--ink); background: var(--ground);
+    border: 1px solid var(--line); border-radius: 3px; padding: 10px 12px;
+  }
+  .ask input:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
+  .ask .go {
+    font-family: inherit; font-size: 15px; color: var(--on-gold); background: var(--gold);
+    border: none; border-radius: 3px; padding: 10px 22px; cursor: pointer;
+  }
+  .ask .err { flex-basis: 100%; font-size: 13px; color: var(--warn); margin: 0; }
+  .ask .err:empty { display: none; }
+
+  /* ---------- บล็อกเทียบร่างเก่า ---------- */
+  .vs { margin: 24px 0 0; padding: 18px 0 0; border-top: 1px solid var(--line); }
+  .vs h3 { font-family: Srisakdi, Sarabun, serif; font-weight: 700; font-size: 19px; margin: 0 0 3px; line-height: 1.4; }
+  .vs .sub { margin: 0 0 14px; font-size: 13.5px; color: var(--ink-soft); }
+  .vs ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 7px; }
+  .vs li { display: flex; align-items: baseline; gap: 10px; font-size: 14px; }
+  .vs .nm2 { flex: 1; min-width: 0; color: var(--ink-faint); font-size: 13px; }
+  .vs .mv { font-family: "IBM Plex Mono", monospace; font-size: 13.5px; flex: none; }
+  .vs .tagx { font-size: 12.5px; flex: none; }
+  .vs li[data-same="1"] .mv { color: var(--ink-faint); }
+  .vs li[data-same="1"] .tagx { color: var(--ink-faint); }
+  .vs li[data-same="0"] .mv { color: var(--c); font-weight: 600; }
+  .vs li[data-same="0"] .tagx { color: var(--c); }
+  .kept { margin: 16px 0 0; font-size: 13px; color: var(--ink-faint); line-height: 1.6; }
 </style>
 
 <div class="wrap">
   <div class="top">
     <div class="brow">
       <span class="mark fx">64 ตำแหน่งใน<span>ต่างโลก</span></span>
-      <span class="count" id="count">01 / 90</span>
+      <span class="count" id="count"></span>
     </div>
     <div class="segs" id="segs">
       {AXES.map((x) => (
@@ -214,19 +265,48 @@ const axisPalette = `
     </div>
   </div>
 
-  <p class="intro">{th("แบบประเมินตำแหน่งประจำปี · ฝ่ายบุคคลแห่งอาณาจักร")}</p>
+  <p class="intro" id="intro">{th("แบบประเมินตำแหน่งประจำปี · ฝ่ายบุคคลแห่งอาณาจักร")}</p>
 
-  <br />
+  <section class="start" id="start">
+    <div>
+      <button class="mode" id="m-new" aria-expanded="false">
+        <b>แบบทดสอบใหม่</b>
+        <span>{th("ทำครบ 90 ข้อ วัดใหม่ทั้ง 6 แกน ได้ตำแหน่งเต็มยศ ใช้เวลาราว 8 นาที")}</span>
+      </button>
+    </div>
+    <div>
+      <button class="mode" id="m-compare" aria-expanded="false">
+        <b>เทียบกับร่างเก่า</b>
+        <span>{th("กรอกผลที่เคยได้ แล้วทำ 90 ข้อ ดูว่ายังเป็นคนเดิมอยู่ไหม")} <em>ENFP · ENFP-T · ENFP-TC</em></span>
+      </button>
+      <div class="ask" id="ask-compare">
+        <input id="in-compare" maxlength="9" placeholder="ENFP-TC" autocomplete="off" spellcheck="false" aria-label="ผลที่เคยได้" />
+        <button class="go" id="go-compare">เริ่ม 90 ข้อ</button>
+        <p class="err" id="err-compare"></p>
+      </div>
+    </div>
+    <div>
+      <button class="mode" id="m-upgrade" aria-expanded="false">
+        <b>อัพเกรดร่างเดิม</b>
+        <span>{th("กรอก 4 ตัวแรกที่เคยได้ แล้วทำแค่ 30 ข้อ วัดเพิ่มเฉพาะจิตใจ (A/T) กับความผูกพัน (C/S)")} <em>ENFP</em></span>
+      </button>
+      <div class="ask" id="ask-upgrade">
+        <input id="in-upgrade" maxlength="9" placeholder="ENFP" autocomplete="off" spellcheck="false" aria-label="สี่ตัวอักษรเดิม" />
+        <button class="go" id="go-upgrade">เริ่ม 30 ข้อ</button>
+        <p class="err" id="err-upgrade"></p>
+      </div>
+    </div>
+  </section>
 
-  <div class="stage">
+  <div class="stage" id="stage" hidden>
     <section class="card" id="card">
-      <p class="qnum" id="qnum">ข้อ 01 / 90</p>
+      <p class="qnum" id="qnum"></p>
       <h1 class="qtext" id="qtext">{Q[0].text}</h1>
       <div class="opts" id="opts"></div>
     </section>
     <div class="under">
       <button class="ghost" id="back" disabled>← ย้อนกลับ</button>
-      <span class="left" id="left">เหลืออีก 89 ข้อ</span>
+      <span class="left" id="left"></span>
     </div>
   </div>
 
@@ -243,6 +323,12 @@ const axisPalette = `
       <p class="code" id="rcode"></p>
       <h2 class="nick fx" id="rnick"></h2>
       <p class="tag" id="rtag"></p>
+      <p class="kept" id="rkept" hidden></p>
+      <div class="vs" id="rvs" hidden>
+        <h3 class="fx" id="vs-head"></h3>
+        <p class="sub" id="vs-sub"></p>
+        <ul id="vs-list"></ul>
+      </div>
       <ul class="stats" id="rstats"><li class="head">ค่าสถานะ</li></ul>
       <div class="tools">
         <button id="copy">คัดลอกไปแปะในแชท</button>
@@ -259,14 +345,30 @@ const axisPalette = `
 </div>
 
 <script is:inline define:vars={{ QUESTIONS: Q, AXES: A, CHOICES, TYPES: T, GUILDS: G, PER_AXIS }}>
-  const KEY = "mbti64.v3";
-  let ans = {};
-  try { ans = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch (e) {}
-
+  const KEY = "mbti64.v4";
   const $ = (id) => document.getElementById(id);
-  const card = $("card"), optBox = $("opts"), result = $("result"), stage = document.querySelector(".stage");
+  const card = $("card"), optBox = $("opts"), result = $("result"), stage = $("stage"), start = $("start");
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const guildOf = (b) => (b[1] === "N" ? (b[2] === "T" ? "NT" : "NF") : b[3] === "J" ? "SJ" : "SP");
+  const UPGRADE_AXES = ["AT", "CS"];
+
+  // S.mode: new | compare | upgrade, S.old: ผลเดิมที่กรอกไว้, S.ans: คำตอบ (key = index ใน QUESTIONS)
+  let S = { mode: null, old: null, ans: {} };
+  try { Object.assign(S, JSON.parse(localStorage.getItem(KEY) || "{}")); } catch (e) {}
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
+
+  let plan = [], at = 0;
+
+  // รับได้ทั้ง ENFP / ENFP-T / ENFPTC / enfp-tc
+  function parseType(raw) {
+    const t = (raw || "").toUpperCase().replace(/[^A-Z]/g, "");
+    if (!/^[EI][SN][TF][JP]/.test(t)) return null;
+    const rest = t.slice(4);
+    if (rest.length > 2) return null;
+    if (rest[0] && !"AT".includes(rest[0])) return null;
+    if (rest[1] && !"CS".includes(rest[1])) return null;
+    return { base: t.slice(0, 4), AT: rest[0] || "", CS: rest[1] || "" };
+  }
 
   CHOICES.forEach((c, k) => {
     const b = document.createElement("button");
@@ -281,29 +383,79 @@ const axisPalette = `
     optBox.appendChild(b);
   });
 
-  const firstOpen = () => {
-    const i = QUESTIONS.findIndex((q, j) => ans[j] === undefined);
-    return i === -1 ? QUESTIONS.length - 1 : i;
-  };
-  let at = firstOpen();
+  /* ---------- หน้าเลือกโหมด ---------- */
+  function openAsk(which) {
+    ["compare", "upgrade"].forEach((m) => {
+      const on = m === which;
+      $("ask-" + m).dataset.open = on ? "1" : "0";
+      $("m-" + m).setAttribute("aria-expanded", String(on));
+    });
+    if (which) $("in-" + which).focus();
+  }
+  $("m-new").onclick = () => begin("new", null);
+  $("m-compare").onclick = () => openAsk("compare");
+  $("m-upgrade").onclick = () => openAsk("upgrade");
+
+  ["compare", "upgrade"].forEach((m) => {
+    const submit = () => {
+      const old = parseType($("in-" + m).value);
+      $("err-" + m).textContent = old ? "" : m === "upgrade"
+        ? "พิมพ์ 4 ตัวแรกให้ถูกนะ เช่น ENFP (E/I · S/N · T/F · J/P)"
+        : "พิมพ์แบบนี้นะ ENFP หรือ ENFP-T หรือ ENFP-TC";
+      if (old) begin(m, m === "upgrade" ? { base: old.base, AT: "", CS: "" } : old);
+    };
+    $("go-" + m).onclick = submit;
+    $("in-" + m).onkeydown = (e) => { if (e.key === "Enter") submit(); };
+  });
+
+  function begin(mode, old) {
+    S = { mode, old, ans: {} };
+    save();
+    run();
+  }
+
+  /* ---------- ทำแบบทดสอบ ---------- */
+  function run() {
+    plan = QUESTIONS.map((q, i) => i).filter((i) =>
+      S.mode === "upgrade" ? UPGRADE_AXES.includes(QUESTIONS[i].axis) : true);
+    const live = new Set(plan.map((i) => QUESTIONS[i].axis));
+    AXES.forEach((x) => { document.querySelector('.seg[data-axis="' + x.key + '"]').hidden = !live.has(x.key); });
+
+    start.hidden = true;
+    result.hidden = true;
+    stage.hidden = false;
+    $("segs").hidden = false;
+    $("intro").textContent = S.mode === "upgrade"
+      ? "อัพเกรดร่าง " + S.old.base + " · วัดเพิ่ม 2 แกน"
+      : S.mode === "compare"
+        ? "เทียบกับร่างเก่า " + code(S.old) + " · 90 ข้อ"
+        : "แบบประเมินตำแหน่งประจำปี · ฝ่ายบุคคลแห่งอาณาจักร";
+
+    at = Math.max(0, plan.findIndex((i) => S.ans[i] === undefined));
+    if (plan.every((i) => S.ans[i] !== undefined)) return show();
+    draw(false);
+  }
+
+  const code = (o) => o.base + (o.AT ? "-" + o.AT + o.CS : "");
 
   function draw(animate) {
-    const q = QUESTIONS[at];
+    const q = QUESTIONS[plan[at]];
     card.style.setProperty("--c", "var(--c-" + q.axis + ")");
-    $("qnum").textContent = "ข้อ " + String(at + 1).padStart(2, "0") + " / " + QUESTIONS.length;
+    $("qnum").textContent = "ข้อ " + String(at + 1).padStart(2, "0") + " / " + plan.length;
     $("qtext").textContent = q.text;
     optBox.querySelectorAll("button").forEach((b, k) =>
-      b.setAttribute("aria-pressed", String(CHOICES[k].value === ans[at])));
+      b.setAttribute("aria-pressed", String(CHOICES[k].value === S.ans[plan[at]])));
     $("back").disabled = at === 0;
-    $("count").textContent = String(at + 1).padStart(2, "0") + " / " + QUESTIONS.length;
+    $("count").textContent = String(at + 1).padStart(2, "0") + " / " + plan.length;
 
-    const left = QUESTIONS.length - Object.keys(ans).length;
+    const left = plan.filter((i) => S.ans[i] === undefined).length;
     $("left").textContent = left ? "เหลืออีก " + left + " ข้อ" : "ตอบครบแล้ว";
 
     AXES.forEach((x) => {
-      const done = QUESTIONS.filter((q2, j) => q2.axis === x.key && ans[j] !== undefined).length;
+      const inPlan = plan.filter((i) => QUESTIONS[i].axis === x.key);
+      const done = inPlan.filter((i) => S.ans[i] !== undefined).length;
       const seg = document.querySelector('.seg[data-axis="' + x.key + '"]');
-      seg.querySelector("i").style.width = (done / PER_AXIS) * 100 + "%";
+      seg.querySelector("i").style.width = (inPlan.length ? done / inPlan.length : 0) * 100 + "%";
       seg.dataset.live = q.axis === x.key ? "1" : "0";
     });
 
@@ -311,25 +463,34 @@ const axisPalette = `
   }
 
   function answer(v) {
-    ans[at] = v;
-    try { localStorage.setItem(KEY, JSON.stringify(ans)); } catch (e) {}
-    if (Object.keys(ans).length === QUESTIONS.length) { draw(false); return show(); }
-    at = at + 1 < QUESTIONS.length && ans[at + 1] === undefined ? at + 1 : firstOpen();
+    S.ans[plan[at]] = v;
+    save();
+    if (plan.every((i) => S.ans[i] !== undefined)) { draw(false); return show(); }
+    const next = at + 1 < plan.length && S.ans[plan[at + 1]] === undefined
+      ? at + 1
+      : plan.findIndex((i) => S.ans[i] === undefined);
+    at = next;
     draw(true);
   }
 
   $("back").onclick = () => { if (at > 0) { at--; draw(true); } };
   addEventListener("keydown", (e) => {
-    if (!result.hidden) return;
+    if (stage.hidden) return;
     if (e.key >= "1" && e.key <= "4") answer(CHOICES[+e.key - 1].value);
     if (e.key === "Backspace" || e.key === "ArrowLeft") $("back").click();
   });
 
+  /* ---------- ผลลัพธ์ ---------- */
   let share = "";
   function show() {
+    const measured = new Set(plan.map((i) => QUESTIONS[i].axis));
     const sum = {};
-    QUESTIONS.forEach((q, i) => { sum[q.axis] = (sum[q.axis] || 0) + q.dir * (ans[i] || 0); });
-    const letters = AXES.map((x) => (sum[x.key] >= 0 ? x.a : x.b));
+    plan.forEach((i) => { const q = QUESTIONS[i]; sum[q.axis] = (sum[q.axis] || 0) + q.dir * (S.ans[i] || 0); });
+
+    // แกนที่ไม่ได้วัดในโหมดอัพเกรด ใช้ตัวอักษรจากร่างเดิม
+    const oldLetters = S.old ? [S.old.base[0], S.old.base[1], S.old.base[2], S.old.base[3], S.old.AT, S.old.CS] : [];
+    const letters = AXES.map((x, k) =>
+      measured.has(x.key) ? (sum[x.key] >= 0 ? x.a : x.b) : oldLetters[k]);
     const base = letters.slice(0, 4).join("");
     const full = base + "-" + letters[4] + letters[5];
     const [nick, tag] = TYPES[full];
@@ -342,11 +503,43 @@ const axisPalette = `
     $("rnick").textContent = nick;
     $("rtag").textContent = tag;
 
+    const kept = $("rkept");
+    kept.hidden = S.mode !== "upgrade";
+    if (S.mode === "upgrade")
+      kept.textContent = "4 แกนแรกใช้จากร่างเดิมที่กรอกไว้ (" + S.old.base + ") วัดใหม่เฉพาะจิตใจกับความผูกพัน";
+
+    // เทียบทีละตัวอักษร เฉพาะตัวที่เขากรอกมา
+    const vs = $("rvs");
+    vs.hidden = S.mode !== "compare";
+    if (S.mode === "compare") {
+      const ul = $("vs-list");
+      ul.innerHTML = "";
+      let changed = 0, checked = 0;
+      AXES.forEach((x, k) => {
+        const was = oldLetters[k];
+        if (!was) return;
+        checked++;
+        const same = was === letters[k];
+        if (!same) changed++;
+        const li = document.createElement("li");
+        li.dataset.same = same ? "1" : "0";
+        li.style.setProperty("--c", "var(--c-" + x.key + ")");
+        li.innerHTML = '<span class="nm2"></span><span class="mv">(' + was + ") → (" + letters[k] + ')</span><span class="tagx"></span>';
+        li.querySelector(".nm2").textContent = x.name;
+        li.querySelector(".tagx").textContent = same ? "เหมือนเดิม" : "เปลี่ยน";
+        ul.appendChild(li);
+      });
+      $("vs-head").textContent = changed === 0 ? "ยังเป็นร่างเดิมทุกตัว" : "เปลี่ยนไป " + changed + " จาก " + checked + " ตัว";
+      $("vs-sub").textContent = "ร่างเก่าที่กรอกไว้ " + code(S.old) + " · ร่างใหม่ " + full;
+    }
+
     const ul = $("rstats");
     ul.querySelectorAll(".stat").forEach((n) => n.remove());
     AXES.forEach((x) => {
+      if (!measured.has(x.key)) return;
       const first = sum[x.key] >= 0;
-      const pct = Math.round(50 + (sum[x.key] / (PER_AXIS * 2)) * 50);
+      const per = plan.filter((i) => QUESTIONS[i].axis === x.key).length;
+      const pct = Math.round(50 + (sum[x.key] / (per * 2)) * 50);
       const li = document.createElement("li");
       li.className = "stat";
       li.style.setProperty("--c", "var(--c-" + x.key + ")");
@@ -365,18 +558,28 @@ const axisPalette = `
       ul.appendChild(li);
     });
 
-    share = ("ตำแหน่งของข้าในต่างโลก: " + nick + " (" + full + ")\n" + g.sigil + " " + g.name + " — " + tag).replace(/\u200B/g, "");
+    share = ("ตำแหน่งของข้าในต่างโลก: " + nick + " (" + full + ")\n" + g.sigil + " " + g.name + " — " + tag +
+      (S.mode === "compare" ? "\n(ร่างเก่า " + code(S.old) + ")" : "")).replace(/​/g, "");
+
     stage.hidden = true;
+    start.hidden = true;
     result.hidden = false;
+    $("segs").hidden = true;
+    $("count").textContent = "";
     scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
   }
 
   $("again").onclick = () => {
-    ans = {}; at = 0;
-    try { localStorage.removeItem(KEY); } catch (e) {}
+    S = { mode: null, old: null, ans: {} };
+    save();
     result.hidden = true;
-    stage.hidden = false;
-    draw(true);
+    stage.hidden = true;
+    start.hidden = false;
+    $("segs").hidden = false;
+    openAsk(null);
+    $("count").textContent = "";
+    $("intro").textContent = "แบบประเมินตำแหน่งประจำปี · ฝ่ายบุคคลแห่งอาณาจักร";
+    document.querySelectorAll(".seg").forEach((s2) => { s2.hidden = false; s2.querySelector("i").style.width = "0"; });
     scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
   };
 
@@ -399,6 +602,5 @@ const axisPalette = `
     setTimeout(() => { b.textContent = "คัดลอกไปแปะในแชท"; }, 2200);
   };
 
-  draw(false);
-  if (Object.keys(ans).length === QUESTIONS.length) show();
+  if (S.mode) run();
 </script>
