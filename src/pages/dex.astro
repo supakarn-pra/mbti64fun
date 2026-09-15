@@ -1,0 +1,293 @@
+---
+import { AXES, GUILDS, TYPES, ARCHETYPES, guildOf } from "../data/quiz.js";
+
+const GUILD_ORDER = ["SP", "SJ", "NF", "NT"];
+const deepLabel = (k, letter) => (AXES[k].a === letter ? AXES[k].labA : AXES[k].labB);
+const nx = (s) => (s || "").split(" · ")[0];
+const guildPalette = `
+  :root {
+    ${Object.entries(GUILDS)
+      .map(([k, g]) => `--g-${k}: ${g.light}; --g-${k}-dark: ${g.dark};`)
+      .join(" ")}
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      ${Object.entries(GUILDS)
+        .map(([k, g]) => `--g-${k}: ${g.dark}; --g-${k}-dark: ${g.light};`)
+        .join(" ")}
+    }
+  }
+  :root[data-theme="dark"] {
+    ${Object.entries(GUILDS)
+      .map(([k, g]) => `--g-${k}: ${g.dark}; --g-${k}-dark: ${g.light};`)
+      .join(" ")}
+  }
+`;
+---
+
+<html lang="th">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ทำเนียบ 64 ตำแหน่ง</title>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Srisakdi:wght@400;700&family=Sarabun:wght@300;400;600;700&family=IBM+Plex+Mono:wght@500&display=swap"
+    />
+    <style is:inline set:html={guildPalette}></style>
+    <style is:global>
+      :root {
+        --ground: #EBE7E0;
+        --surface: #FBF9F6;
+        --line: #D6CFC2;
+        --ink: #24201C;
+        --ink-soft: #625A50;
+        --ink-faint: #8C8376;
+        --gold: #8A6A15;
+        --on-gold: #FFFCF4;
+        --blood: #8E2C33;
+        --warn: #A33C1E;
+        --shadow: 0 1px 2px rgba(36, 32, 28, .06), 0 20px 44px -26px rgba(36, 32, 28, .5);
+      }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]) {
+          --ground: #14121B;
+          --surface: #1D1A26;
+          --line: #342F41;
+          --ink: #F0EBE2;
+          --ink-soft: #ADA598;
+          --ink-faint: #7E7668;
+          --gold: #D9B15A;
+          --on-gold: #1A150A;
+          --blood: #E58089;
+          --warn: #F0956F;
+          --shadow: 0 1px 2px rgba(0, 0, 0, .5), 0 20px 44px -26px rgba(0, 0, 0, .95);
+        }
+      }
+      :root[data-theme="dark"] {
+        --ground: #14121B;
+        --surface: #1D1A26;
+        --line: #342F41;
+        --ink: #F0EBE2;
+        --ink-soft: #ADA598;
+        --ink-faint: #7E7668;
+        --gold: #D9B15A;
+        --on-gold: #1A150A;
+        --blood: #E58089;
+        --warn: #F0956F;
+        --shadow: 0 1px 2px rgba(0, 0, 0, .5), 0 20px 44px -26px rgba(0, 0, 0, .95);
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: var(--ground);
+        color: var(--ink);
+        font-family: Sarabun, "Noto Sans Thai", "Leelawadee UI", Thonburi, system-ui, sans-serif;
+        line-height: 1.75;
+      }
+      .wrap {
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 24px 20px 56px;
+      }
+      .fx { font-family: Srisakdi, Sarabun, serif; font-weight: 700; }
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        margin-bottom: 18px;
+      }
+      .title {
+        font-size: clamp(28px, 6vw, 42px);
+        margin: 0;
+        line-height: 1.2;
+      }
+      .home {
+        appearance: none;
+        border: 1px solid var(--line);
+        background: var(--surface);
+        color: var(--ink);
+        border-radius: 999px;
+        padding: 8px 16px;
+        font: inherit;
+        cursor: pointer;
+      }
+      .home:hover { border-color: var(--gold); }
+      .sub {
+        margin: 0 0 18px;
+        color: var(--ink-soft);
+        font-size: 14px;
+      }
+      .dexsec { margin-top: 28px; }
+      .gh {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 14px;
+        border: 1px solid color-mix(in srgb, var(--g) 40%, var(--line));
+        border-left: 4px solid var(--g);
+        border-radius: 4px;
+        background: color-mix(in srgb, var(--g) 9%, var(--surface));
+      }
+      .sg {
+        width: 32px; height: 32px; display: grid; place-items: center;
+        border-radius: 50%; background: var(--g); color: var(--surface);
+        font-size: 15px; font-weight: 700;
+      }
+      .gn {
+        font-size: 20px; line-height: 1.3; color: var(--g);
+      }
+      .gl {
+        display: block; font-size: 12px; color: var(--ink-faint); line-height: 1.5;
+      }
+      .gh em {
+        margin-left: auto;
+        font-style: normal;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 11px;
+        color: var(--ink-faint);
+      }
+      .dexlist {
+        list-style: none;
+        margin: 12px 0 0;
+        padding: 0;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 12px;
+      }
+      .dexlist li {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-top: 3px solid var(--g);
+        border-radius: 4px;
+        padding: 14px 14px 12px;
+        box-shadow: var(--shadow);
+      }
+      .crow {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 9px;
+      }
+      .av {
+        width: 24px; height: 24px; display: grid; place-items: center;
+        border-radius: 50%; border: 1px solid color-mix(in srgb, var(--g) 50%, var(--line));
+        color: var(--g); font-size: 12px;
+      }
+      .dc {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 11.5px;
+        letter-spacing: .12em;
+        color: var(--g);
+      }
+      .meta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 6px;
+      }
+      .dn {
+        font-family: Srisakdi, Sarabun, serif;
+        font-weight: 700;
+        font-size: 16.5px;
+        line-height: 1.45;
+      }
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2px 8px;
+        border-radius: 999px;
+        border: 1px solid color-mix(in srgb, var(--g) 35%, var(--line));
+        background: color-mix(in srgb, var(--g) 12%, var(--surface));
+        color: var(--g);
+        font-size: 9.5px;
+        letter-spacing: .1em;
+        font-weight: 700;
+        text-transform: uppercase;
+        line-height: 1.6;
+      }
+      .dt {
+        display: block;
+        margin: 0 0 6px;
+        color: var(--ink-soft);
+        font-size: 12.5px;
+        line-height: 1.55;
+      }
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        padding-top: 8px;
+        margin-top: 8px;
+        border-top: 1px dashed var(--line);
+      }
+      .chips span {
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 0 8px;
+        color: var(--ink-faint);
+        font-size: 11px;
+        line-height: 1.7;
+      }
+      @media (max-width: 600px) {
+        .topbar { align-items: flex-start; flex-direction: column; }
+        .home { align-self: flex-end; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="wrap">
+      <div class="topbar">
+        <h1 class="title fx">ทำเนียบ 64 ตำแหน่ง</h1>
+        <button class="home" type="button" onclick="window.location.href='/'">← กลับหน้าแรก</button>
+      </div>
+      <p class="sub">ทะเบียนพนักงานทั้งอาณาจักร แบ่งตาม 4 สังกัด สังกัดละ 16 ตำแหน่ง</p>
+
+      {GUILD_ORDER.map((key) => {
+        const g = GUILDS[key];
+        return (
+          <section class="dexsec" style={`--g: var(--g-${key});`}>
+            <div class="gh">
+              <span class="sg">{g.sigil}</span>
+              <div>
+                <div class="gn fx">{g.name}</div>
+                <span class="gl">{g.line}</span>
+              </div>
+              <em>16 ตำแหน่ง</em>
+            </div>
+
+            <ul class="dexlist">
+              {Object.keys(TYPES)
+                .filter((code) => guildOf(code.slice(0, 4)) === key)
+                .map((code) => {
+                  const [nick, tag] = TYPES[code];
+                  const base = code.slice(0, 4);
+                  return (
+                    <li style={`--g: var(--g-${key});`}>
+                      <div class="crow">
+                        <span class="av">{g.sigil}</span>
+                        <span class="dc">{code}</span>
+                        <span class="badge">{nx(ARCHETYPES[base])}</span>
+                      </div>
+                      <div class="meta">
+                        <span class="dn">{nick}</span>
+                      </div>
+                      <span class="dt">{tag}</span>
+                      <!-- <div class="chips">
+                        <span>{deepLabel(4, code[5])}</span>
+                        <span>{deepLabel(5, code[6])}</span>
+                      </div> -->
+                    </li>
+                  );
+                })}
+            </ul>
+          </section>
+        );
+      })}
+    </main>
+  </body>
+</html>

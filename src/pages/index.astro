@@ -1,5 +1,5 @@
 ---
-import { AXES, QUESTIONS, CHOICES, TYPES, GUILDS, PER_AXIS } from "../data/quiz.js";
+import { AXES, QUESTIONS, CHOICES, TYPES, GUILDS, PER_AXIS, ARCHETYPES } from "../data/quiz.js";
 
 // เบราว์เซอร์บางตัว (webview ใน LINE/แอปต่าง ๆ) ไม่มีพจนานุกรมตัดคำไทย เลยตัดบรรทัดกลางคำ
 // ตัดคำด้วย Intl.Segmenter ตอน build แล้วคั่นด้วย zero-width space ให้เบราว์เซอร์รู้ว่าตรงไหนตัดได้
@@ -194,6 +194,10 @@ const axisPalette = `
   .code { font-family: "IBM Plex Mono", monospace; font-size: 15px; letter-spacing: .22em; color: var(--gold); margin: 0; }
   .nick { font-size: clamp(27px, 7vw, 38px); line-height: 1.35; margin: 4px 0 10px; text-wrap: balance; }
   .tag { margin: 0; color: var(--ink-soft); font-size: 15.5px; }
+  .archetype {
+    margin: 10px 0 0; color: var(--gold); font-size: 12.5px; letter-spacing: .08em;
+    text-transform: uppercase; font-weight: 700;
+  }
 
   .stats { list-style: none; margin: 26px 0 0; padding: 20px 0 0; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 17px; }
   .stats .head { font-size: 12px; color: var(--ink-faint); margin: -4px 0 0; }
@@ -312,6 +316,14 @@ const axisPalette = `
   .crow .dc { font-family: "IBM Plex Mono", monospace; font-size: 11.5px; letter-spacing: .12em; color: var(--g); }
   .dexlist .dn { font-family: Srisakdi, Sarabun, serif; font-weight: 700; font-size: 16.5px; line-height: 1.45; margin-bottom: 4px; }
   .dexlist .dt { font-size: 12.5px; color: var(--ink-soft); line-height: 1.55; }
+  .dexmeta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 6px; }
+  .dexarchetype {
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 8.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--g);
+    font-weight: 700; background: color-mix(in srgb, var(--g) 12%, var(--surface));
+    border: 1px solid color-mix(in srgb, var(--g) 35%, var(--line)); border-radius: 999px;
+    padding: 2px 7px; line-height: 1.5;
+  }
   .chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; padding-top: 9px; border-top: 1px dashed var(--line); }
   .chips span {
     font-size: 11px; line-height: 1.7; color: var(--ink-faint);
@@ -411,6 +423,7 @@ const axisPalette = `
       <p class="code" id="rcode"></p>
       <h2 class="nick fx" id="rnick"></h2>
       <p class="tag" id="rtag"></p>
+      <p class="archetype" id="rarchetype"></p>
       <p class="kept" id="rkept" hidden></p>
       <div class="vs" id="rvs" hidden>
         <h3 class="fx" id="vs-head"></h3>
@@ -433,7 +446,7 @@ const axisPalette = `
   </footer>
 </div>
 
-<script is:inline define:vars={{ QUESTIONS: Q, AXES: A, CHOICES, TYPES: T, GUILDS: G, PER_AXIS }}>
+<script is:inline define:vars={{ QUESTIONS: Q, AXES: A, CHOICES, TYPES: T, GUILDS: G, PER_AXIS, ARCHETYPES }}>
   const KEY = "mbti64.v4";
   const $ = (id) => document.getElementById(id);
   const card = $("card"), optBox = $("opts"), result = $("result"), stage = $("stage"), start = $("start");
@@ -656,6 +669,7 @@ const axisPalette = `
     $("rcode").textContent = full;
     $("rnick").textContent = nick;
     $("rtag").textContent = tag;
+    $("rarchetype").textContent = "Archetype · " + (ARCHETYPES[base] || "");
 
     const kept = $("rkept");
     kept.hidden = S.mode !== "upgrade";
@@ -759,15 +773,18 @@ const axisPalette = `
       ul.className = "dexlist";
       Object.keys(TYPES).filter((c) => guildOf(c.slice(0, 4)) === key).forEach((c) => {
         const [nick, tag] = TYPES[c];
+        const base = c.slice(0, 4);
         const li = document.createElement("li");
         li.dataset.code = c;
         li.innerHTML =
           '<div class="crow"><span class="av"></span><span class="dc"></span></div>' +
-          '<span class="dn"></span><span class="dt"></span>' +
+          '<div class="dexmeta"><span class="dn"></span><span class="dexarchetype"></span></div>' +
+          '<span class="dt"></span>' +
           '<div class="chips"><span class="c1"></span><span class="c2"></span></div>';
         li.querySelector(".av").textContent = g.sigil;
         li.querySelector(".dc").textContent = c;
         li.querySelector(".dn").textContent = nick;
+        li.querySelector(".dexarchetype").textContent = (ARCHETYPES[base] || "").split(" · ")[0];
         li.querySelector(".dt").textContent = tag;
         li.querySelector(".c1").textContent = deepLabel(4, c[5]);
         li.querySelector(".c2").textContent = deepLabel(5, c[6]);
@@ -794,8 +811,8 @@ const axisPalette = `
     $("dex").hidden = false;
     scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
   }
-  $("dex-open").onclick = openDex;
-  $("dex-open2").onclick = openDex;
+  $("dex-open").onclick = () => { window.location.href = "/dex"; };
+  $("dex-open2").onclick = () => { window.location.href = "/dex"; };
   $("dex-close").onclick = () => {
     $("dex").hidden = true;
     $("intro").hidden = false;
