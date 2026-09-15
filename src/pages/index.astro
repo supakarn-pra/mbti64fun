@@ -547,6 +547,7 @@ const axisPalette = `
 
   // กลับบ้านแบบไม่ล้างคำตอบ กดโหมดเดิมเข้ามาใหม่จะทำต่อจากข้อที่ค้างไว้
   function home() {
+    $("intro").hidden = false;
     stage.hidden = true;
     result.hidden = true;
     $("dex").hidden = true;
@@ -785,6 +786,7 @@ const axisPalette = `
     stage.hidden = true;
     result.hidden = true;
     $("segs").hidden = true;
+    $("intro").hidden = true;
     $("dex").hidden = false;
     scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
   }
@@ -792,6 +794,7 @@ const axisPalette = `
   $("dex-open2").onclick = openDex;
   $("dex-close").onclick = () => {
     $("dex").hidden = true;
+    $("intro").hidden = false;
     if (myCode && S.mode) { result.hidden = false; scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" }); }
     else home();
   };
