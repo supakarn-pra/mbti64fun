@@ -225,10 +225,27 @@ const axisPalette = `
   .bar i { position: absolute; top: 0; bottom: 0; left: 0; background: var(--c); }
   .stat p { margin: 6px 0 0; font-size: 13.5px; color: var(--ink-soft); line-height: 1.6; }
 
-  .tools { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 26px; }
-  .tools button { display: inline-flex; align-items: center; gap: 7px; font-family: inherit; font-size: 14px; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 3px; padding: 9px 16px; cursor: pointer; }
+  /* ปุ่มเรียงเป็นกริด ไม่ใช่ flex-wrap จะได้ไม่มีปุ่มหลุดไปอยู่แถวล่างตัวเดียว */
+  .tools { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 26px; }
+  .tools button {
+    display: flex; align-items: center; justify-content: center; gap: 7px;
+    font-family: inherit; font-size: 14px; color: var(--ink); background: transparent;
+    border: 1px solid var(--line); border-radius: 3px; padding: 11px 14px; cursor: pointer;
+    transition: border-color .15s, background .15s;
+  }
   .tools button:hover { border-color: var(--gold); }
   .tools button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+  /* ต้องเจาะจงกว่า .tools button ไม่งั้นพื้นหลังโปร่งใสชนะ กลายเป็นตัวหนังสือขาวบนขาว */
+  .tools .t-main { background: var(--gold); border-color: var(--gold); color: var(--on-gold); font-weight: 600; }
+  .tools .t-main:hover { background: color-mix(in srgb, var(--gold) 86%, var(--ink)); border-color: var(--gold); }
+  .t-wide { grid-column: 1 / -1; }
+  .t-quiet {
+    display: flex; align-items: center; justify-content: center; gap: 7px;
+    margin: 14px auto 0; font-family: inherit; font-size: 13.5px; color: var(--ink-faint);
+    background: none; border: none; cursor: pointer; padding: 6px 10px;
+  }
+  .t-quiet:hover { color: var(--ink); }
+  .t-quiet:focus-visible { outline: 2px solid var(--ink-faint); outline-offset: 2px; }
 
   footer { margin-top: 32px; font-size: 12.5px; color: var(--ink-faint); line-height: 1.7; text-align: center; }
   @media (prefers-reduced-motion: reduce) { *, *::before { animation: none !important; transition: none !important; } }
@@ -410,10 +427,11 @@ const axisPalette = `
       </div>
       <ul class="stats" id="rstats"><li class="head">ค่าสถานะ</li></ul>
       <div class="tools">
-        <button id="copy"><svg class="ic" viewBox="0 0 24 24" fill="none" aria-hidden="true" set:html={ICONS.copy}></svg><span class="lb">คัดลอกไปแปะในแชท</span></button>
-        <button id="again"><svg class="ic" viewBox="0 0 24 24" fill="none" aria-hidden="true" set:html={ICONS.refresh}></svg>ประเมินใหม่</button>
+        <button id="copy" class="t-main"><svg class="ic" viewBox="0 0 24 24" fill="none" aria-hidden="true" set:html={ICONS.copy}></svg><span class="lb">คัดลอกไปแปะในแชท</span></button>
         <button id="share"><svg class="ic" viewBox="0 0 24 24" fill="none" aria-hidden="true" set:html={ICONS.share}></svg><span class="lb">แชร์ให้ผู้อื่น</span></button>
-        <button id="dex-open2"><svg class="ic" viewBox="0 0 24 24" fill="none" aria-hidden="true" set:html={ICONS.book}></svg>ดูทั้ง 64 ตำแหน่ง</button>
+        <button id="dex-open2" class="t-wide"><svg class="ic" viewBox="0 0 24 24" fill="none" aria-hidden="true" set:html={ICONS.book}></svg>ดูทั้ง 64 ตำแหน่ง</button>
+      </div>
+      <button id="again" class="t-quiet"><svg class="ic" viewBox="0 0 24 24" fill="none" aria-hidden="true" set:html={ICONS.refresh}></svg>ประเมินใหม่</button>
       </div>
     </div>
   </section>
