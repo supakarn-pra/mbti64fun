@@ -117,14 +117,15 @@ const axisPalette = `
   /* ---------- แถวมอนสเตอร์ 6 ตัว หลอดเลือดคือความคืบหน้าของแต่ละแกน ---------- */
   .segs { display: flex; gap: 6px; margin-top: 8px; }
   .seg { flex: 1; position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; }
-  .face { font-size: 17px; line-height: 1.1; filter: grayscale(.35); transition: filter .2s, transform .2s; }
+  .face { display: block; color: var(--ink-faint); transition: color .2s, transform .2s; }
+  .face svg { display: block; width: 22px; height: 22px; stroke-width: 1.5; }
   .hp { display: block; width: 100%; height: 5px; border-radius: 3px; background: var(--line); overflow: hidden; }
   .hp i { display: block; height: 100%; width: 0; background: var(--sc); transition: width .3s ease; }
-  .seg[data-live="1"] .face { filter: none; transform: scale(1.18); }
+  .seg[data-live="1"] .face { color: var(--sc); transform: scale(1.18); }
   .seg[data-live="1"] .hp { background: color-mix(in srgb, var(--sc) 25%, var(--line)); }
   /* ล้มแล้ว หรี่ทั้งตัว */
   .seg[data-dead="1"] { opacity: .35; }
-  .seg[data-dead="1"] .face { filter: grayscale(1); transform: rotate(90deg); }
+  .seg[data-dead="1"] .face { transform: rotate(90deg); }
 
   .seg.hit .face { animation: shake .4s ease; }
   @keyframes shake {
@@ -136,7 +137,7 @@ const axisPalette = `
   .seg.slay .face { animation: slay .6s ease forwards; }
   @keyframes slay {
     0% { transform: scale(1.3); }
-    40% { transform: scale(1.5) rotate(20deg); filter: brightness(1.8); }
+    40% { transform: scale(1.5) rotate(20deg); color: var(--sc); }
     100% { transform: rotate(90deg) scale(.9); }
   }
   .dmg {
@@ -393,7 +394,7 @@ const axisPalette = `
     <div class="segs" id="segs">
       {AXES.map((x) => (
         <div class="seg" style={`--sc:var(--c-${x.key})`} data-axis={x.key} title={`${x.mobName} · ${x.name}`}>
-          <span class="face">{x.mob}</span>
+          <span class="face"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true" set:html={ICONS["mob_" + x.key]}></svg></span>
           <span class="hp"><i></i></span>
         </div>
       ))}
