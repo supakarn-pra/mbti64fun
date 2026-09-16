@@ -759,8 +759,9 @@ const axisPalette = `
     if (animate && !reduce) { card.classList.remove("turn"); void card.offsetWidth; card.classList.add("turn"); }
   }
 
-  // ฟาดมอนสเตอร์ของแกนนี้ ตัวเลขดาเมจ = ความหนักแน่นของคำตอบ
-  function whack(axis, v) {
+  // ฟาดมอนสเตอร์ของแกนนี้ ดาเมจสุ่มสองหลักเฉย ๆ ไม่ผูกกับคำตอบ
+  // ถ้าโชว์คะแนนจริงจะเดาได้ว่าตอบแบบไหนดันไปทางไหน แล้วจะกดล็อกผลกันได้
+  function whack(axis) {
     if (reduce) return;
     const seg = document.querySelector('.seg[data-axis="' + axis + '"]');
     if (!seg || seg.dataset.dead === "1") return;
@@ -768,13 +769,13 @@ const axisPalette = `
     setTimeout(() => seg.classList.remove("hit"), 400);
     const n = document.createElement("span");
     n.className = "dmg";
-    n.textContent = "-" + Math.abs(v);
+    n.textContent = "-" + (10 + Math.floor(Math.random() * 90));
     seg.appendChild(n);
     setTimeout(() => n.remove(), 760);
   }
 
   function answer(v) {
-    whack(QUESTIONS[plan[at]].axis, v);
+    whack(QUESTIONS[plan[at]].axis);
     S.ans[plan[at]] = v;
     save();
     if (plan.every((i) => S.ans[i] !== undefined)) { draw(false); return show(); }
