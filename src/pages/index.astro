@@ -301,6 +301,18 @@ const axisPalette = `
 
   /* ---------- หน้าเลือกโหมด ---------- */
   .start { display: flex; flex-direction: column; gap: 14px; padding-top: 18px; }
+  .resume {
+    display: flex; flex-direction: column; align-items: flex-start; gap: 2px; width: 100%;
+    font-family: inherit; text-align: left; color: var(--ink); cursor: pointer;
+    background: color-mix(in srgb, var(--gold) 12%, var(--surface));
+    border: 1px solid var(--gold); border-left: 4px solid var(--gold);
+    border-radius: 3px; padding: 14px 18px;
+  }
+  .resume:hover { background: color-mix(in srgb, var(--gold) 18%, var(--surface)); }
+  .resume:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+  .resume .rk { font-size: 12px; color: var(--ink-faint); }
+  .resume b { font-family: Srisakdi, Sarabun, serif; font-weight: 700; font-size: 19px; line-height: 1.4; }
+
   .len { display: flex; gap: 8px; }
   .len button {
     flex: 1; font-family: inherit; font-size: 14.5px; color: var(--ink-soft);
@@ -404,6 +416,10 @@ const axisPalette = `
   <p class="intro" id="intro">{th("แบบประเมินตำแหน่งประจำปี · ฝ่ายบุคคลแห่งอาณาจักร")}</p>
 
   <section class="start" id="start">
+    <button class="resume" id="resume" hidden>
+      <span class="rk" id="resume-k"></span>
+      <b id="resume-t"></b>
+    </button>
     <div class="len" role="group" aria-label="ความยาวแบบทดสอบ">
       <button data-rush="0" aria-pressed="true">เต็มยศ <i>78</i></button>
       <button data-rush="1" aria-pressed="false">รีบไปทำงาน <i>30</i></button>
@@ -518,7 +534,7 @@ const axisPalette = `
   const UPGRADE_AXES = ["AT", "CS"];
 
   // S.mode: new | compare | upgrade, S.old: ผลเดิมที่กรอกไว้, S.ans: คำตอบ (key = index ใน QUESTIONS)
-  let S = { mode: null, old: null, rush: false, ans: {} };
+  let S = { mode: null, old: null, rush: false, home: false, ans: {} };
   try { Object.assign(S, JSON.parse(localStorage.getItem(KEY) || "{}")); } catch (e) {}
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
 
@@ -659,7 +675,7 @@ const axisPalette = `
     const same = S.mode === mode && !!S.rush === rush && sig(S.old) === sig(old) && S.plan;
     const axes = mode === "upgrade" ? UPGRADE_AXES : AXES.map((x) => x.key);
     S = {
-      mode, old, rush,
+      mode, old, rush, home: false,
       plan: same ? S.plan : drawPlan(axes, DRAW[rush ? "rush" : "full"]),
       ans: same ? S.ans : {},
     };
@@ -669,6 +685,9 @@ const axisPalette = `
 
   // กลับบ้านแบบไม่ล้างคำตอบ กดโหมดเดิมเข้ามาใหม่จะทำต่อจากข้อที่ค้างไว้
   function home() {
+    S.home = true;
+    save();
+    showResume();
     $("intro").hidden = false;
     stage.hidden = true;
     result.hidden = true;
@@ -690,7 +709,24 @@ const axisPalette = `
   $("leave").addEventListener("click", (e) => { if (e.target === $("leave")) $("leave").close(); });
 
   /* ---------- ทำแบบทดสอบ ---------- */
+  // ปุ่มทำต่อ โผล่เฉพาะตอนมีแบบทดสอบค้างอยู่
+  function showResume() {
+    const b = $("resume");
+    const live = S.mode && Array.isArray(S.plan) && S.plan.length && S.plan.every((i) => QUESTIONS[i]);
+    b.hidden = !live;
+    if (!live) return;
+    const done = S.plan.filter((i) => S.ans[i] !== undefined).length;
+    const fin = done === S.plan.length;
+    const what = S.mode === "upgrade" ? "อัพเกรดร่าง " + S.old.base
+      : S.mode === "compare" ? "เทียบกับร่างเก่า " + code(S.old)
+      : "แบบทดสอบใหม่";
+    $("resume-k").textContent = fin ? what + " · ทำครบแล้ว" : what + " · ตอบไปแล้ว " + done + " / " + S.plan.length + " ข้อ";
+    $("resume-t").textContent = fin ? "ดูผลลัพธ์" : "ทำแบบทดสอบต่อ";
+  }
+  $("resume").onclick = () => { S.home = false; save(); run(); };
+
   function run() {
+    S.home = false;
     rush = !!S.rush;
     paintLen();
     syncCounts();
@@ -896,7 +932,7 @@ const axisPalette = `
   }
 
   $("again").onclick = () => {
-    S = { mode: null, old: null, rush: false, ans: {} };
+    S = { mode: null, old: null, rush: false, home: false, ans: {} };
     save();
     openAsk(null);
     document.querySelectorAll(".seg").forEach((s2) => { s2.hidden = false; s2.querySelector("i").style.width = "0"; });
@@ -932,5 +968,6 @@ const axisPalette = `
     setTimeout(() => { lb.textContent = "คัดลอกไปแปะในแชท"; }, 2200);
   };
 
-  if (S.mode) run();
+  if (S.mode && !S.home) run();
+  else showResume();
 </script>
