@@ -114,23 +114,42 @@ const axisPalette = `
   .brow { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
   .mark { font-size: 19px; line-height: 1.4; letter-spacing: .01em; }
   .mark span { color: var(--gold); }
-  .segs { display: flex; gap: 5px; margin-top: 9px; }
-  .seg { flex: 1; height: 5px; border-radius: 3px; background: var(--line); overflow: hidden; }
-  .seg i { display: block; height: 100%; width: 0; background: var(--sc); transition: width .3s ease; }
-  .seg[data-live="1"] { background: color-mix(in srgb, var(--sc) 25%, var(--line)); }
-  /* มอนสเตอร์ที่ล้มแล้ว หรี่ลงให้รู้ว่าผ่านไปแล้ว */
-  .seg[data-dead="1"] { opacity: .4; }
-  .seg.hit { animation: hit .5s ease; }
-  @keyframes hit {
-    0% { transform: scaleY(1); }
-    35% { transform: scaleY(2.4); filter: brightness(1.5); }
-    100% { transform: scaleY(1); }
+  /* ---------- แถวมอนสเตอร์ 6 ตัว หลอดเลือดคือความคืบหน้าของแต่ละแกน ---------- */
+  .segs { display: flex; gap: 6px; margin-top: 8px; }
+  .seg { flex: 1; position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .face { font-size: 17px; line-height: 1.1; filter: grayscale(.35); transition: filter .2s, transform .2s; }
+  .hp { display: block; width: 100%; height: 5px; border-radius: 3px; background: var(--line); overflow: hidden; }
+  .hp i { display: block; height: 100%; width: 0; background: var(--sc); transition: width .3s ease; }
+  .seg[data-live="1"] .face { filter: none; transform: scale(1.18); }
+  .seg[data-live="1"] .hp { background: color-mix(in srgb, var(--sc) 25%, var(--line)); }
+  /* ล้มแล้ว หรี่ทั้งตัว */
+  .seg[data-dead="1"] { opacity: .35; }
+  .seg[data-dead="1"] .face { filter: grayscale(1); transform: rotate(90deg); }
+
+  .seg.hit .face { animation: shake .4s ease; }
+  @keyframes shake {
+    0%, 100% { transform: scale(1.18) translateX(0) rotate(0); }
+    20% { transform: scale(1.32) translateX(-3px) rotate(-12deg); }
+    50% { transform: scale(1.32) translateX(3px) rotate(12deg); }
+    80% { transform: scale(1.22) translateX(-2px) rotate(-5deg); }
   }
-  .slain {
-    display: flex; align-items: center; gap: 5px; flex: none;
-    font-size: 12px; color: var(--ink-faint); font-variant-numeric: tabular-nums;
+  .seg.slay .face { animation: slay .6s ease forwards; }
+  @keyframes slay {
+    0% { transform: scale(1.3); }
+    40% { transform: scale(1.5) rotate(20deg); filter: brightness(1.8); }
+    100% { transform: rotate(90deg) scale(.9); }
   }
-  .slain b { color: var(--gold); font-weight: 600; }
+  .dmg {
+    position: absolute; top: -2px; left: 50%; pointer-events: none;
+    font-family: "IBM Plex Mono", monospace; font-size: 12px; font-weight: 500;
+    color: var(--sc); text-shadow: 0 1px 0 var(--ground);
+    animation: dmg .75s ease forwards;
+  }
+  @keyframes dmg {
+    0% { transform: translate(-50%, 0) scale(.8); opacity: 0; }
+    25% { transform: translate(-50%, -8px) scale(1.15); opacity: 1; }
+    100% { transform: translate(-50%, -24px) scale(1); opacity: 0; }
+  }
 
   /* ---------- ใบประเมิน ---------- */
   .intro {
@@ -370,14 +389,13 @@ const axisPalette = `
   <div class="top">
     <div class="brow">
       <span class="mark fx">64 ตำแหน่งใน<span>ต่างโลก</span></span>
-      <span class="slain" id="slain" hidden>
-        <svg class="ic" viewBox="0 0 24 24" fill="none" aria-hidden="true" set:html={ICONS.swords}></svg>
-        <b id="slain-n">0</b> / <span id="slain-all">6</span> ตัว
-      </span>
     </div>
     <div class="segs" id="segs">
       {AXES.map((x) => (
-        <div class="seg" style={`--sc:var(--c-${x.key})`} data-axis={x.key} title={x.name}><i></i></div>
+        <div class="seg" style={`--sc:var(--c-${x.key})`} data-axis={x.key} title={`${x.mobName} · ${x.name}`}>
+          <span class="face">{x.mob}</span>
+          <span class="hp"><i></i></span>
+        </div>
       ))}
     </div>
   </div>
@@ -626,17 +644,12 @@ const axisPalette = `
       });
       return shuffled(picked);
     });
-    // จัดเป็นด่านละ 2 แกน สลับกันภายในด่าน จะได้ล้มมอนสเตอร์ทีละคู่ระหว่างทาง
-    // ไม่ใช่สลับทั้ง 6 แกนวนไปเรื่อย ๆ แล้วไปตายพร้อมกันหมดตอนท้าย
-    const order = shuffled(lanes.map((l, i) => i));
+    // สลับแกนวนไปเรื่อย ๆ กันคนเดาว่ากำลังวัดอะไรอยู่ มอนสเตอร์ทั้งแถวจึงเลือดลดพร้อม ๆ กัน
     const out = [];
-    for (let c = 0; c < order.length; c += 2) {
-      const pair = order.slice(c, c + 2).map((i) => lanes[i]);
-      for (let k = 0; ; k++) {
-        const row = pair.map((l) => l[k]).filter((x) => x !== undefined);
-        if (!row.length) break;
-        out.push(...shuffled(row));
-      }
+    for (let k = 0; ; k++) {
+      const row = lanes.map((l) => l[k]).filter((x) => x !== undefined);
+      if (!row.length) break;
+      out.push(...shuffled(row));
     }
     return out;
   }
@@ -660,7 +673,6 @@ const axisPalette = `
     result.hidden = true;
     start.hidden = false;
     $("segs").hidden = false;
-    $("slain").hidden = true;
     $("intro").textContent = "แบบประเมินตำแหน่งประจำปี · ฝ่ายบุคคลแห่งอาณาจักร";
     scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
   }
@@ -728,31 +740,40 @@ const axisPalette = `
     $("left").textContent = left ? "เหลืออีก " + left + " ข้อ" : "ตอบครบแล้ว";
 
     // แต่ละแกนคือมอนสเตอร์หนึ่งตัว ตอบครบแกนไหน = ล้มตัวนั้น
-    let slain = 0, alive = 0;
     AXES.forEach((x) => {
       const inPlan = plan.filter((i) => QUESTIONS[i].axis === x.key);
       if (!inPlan.length) return;
-      alive++;
       const done = inPlan.filter((i) => S.ans[i] !== undefined).length;
       const dead = done === inPlan.length;
-      if (dead) slain++;
       const seg = document.querySelector('.seg[data-axis="' + x.key + '"]');
-      seg.querySelector("i").style.width = (done / inPlan.length) * 100 + "%";
+      seg.querySelector(".hp i").style.width = (done / inPlan.length) * 100 + "%";
       seg.dataset.live = q.axis === x.key ? "1" : "0";
       if (dead && seg.dataset.dead !== "1" && !reduce) {
-        seg.classList.add("hit");
-        setTimeout(() => seg.classList.remove("hit"), 500);
+        seg.classList.add("slay");
+        setTimeout(() => seg.classList.remove("slay"), 600);
       }
       seg.dataset.dead = dead ? "1" : "0";
     });
-    $("slain").hidden = false;
-    $("slain-n").textContent = slain;
-    $("slain-all").textContent = alive;
 
     if (animate && !reduce) { card.classList.remove("turn"); void card.offsetWidth; card.classList.add("turn"); }
   }
 
+  // ฟาดมอนสเตอร์ของแกนนี้ ตัวเลขดาเมจ = ความหนักแน่นของคำตอบ
+  function whack(axis, v) {
+    if (reduce) return;
+    const seg = document.querySelector('.seg[data-axis="' + axis + '"]');
+    if (!seg || seg.dataset.dead === "1") return;
+    seg.classList.add("hit");
+    setTimeout(() => seg.classList.remove("hit"), 400);
+    const n = document.createElement("span");
+    n.className = "dmg";
+    n.textContent = "-" + Math.abs(v);
+    seg.appendChild(n);
+    setTimeout(() => n.remove(), 760);
+  }
+
   function answer(v) {
+    whack(QUESTIONS[plan[at]].axis, v);
     S.ans[plan[at]] = v;
     save();
     if (plan.every((i) => S.ans[i] !== undefined)) { draw(false); return show(); }
@@ -869,7 +890,6 @@ const axisPalette = `
     start.hidden = true;
     result.hidden = false;
     $("segs").hidden = true;
-    $("slain").hidden = true;
     scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
   }
 
