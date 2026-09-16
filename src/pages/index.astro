@@ -1,14 +1,23 @@
 ---
-import { AXES, QUESTIONS, CHOICES, TYPES, GUILDS, PER_AXIS, ARCHETYPES } from "../data/quiz.js";
+import { AXES, QUESTIONS, CHOICES, DRAW, DEPTHS } from "../data/questions.js";
+import { TYPES, GUILDS, ARCHETYPES } from "../data/types.js";
 
 // เบราว์เซอร์บางตัว (webview ใน LINE/แอปต่าง ๆ) ไม่มีพจนานุกรมตัดคำไทย เลยตัดบรรทัดกลางคำ
 // ตัดคำด้วย Intl.Segmenter ตอน build แล้วคั่นด้วย zero-width space ให้เบราว์เซอร์รู้ว่าตรงไหนตัดได้
 const seg = new Intl.Segmenter("th", { granularity: "word" });
 const th = (s) => [...seg.segment(s)].map((x) => x.segment).join("​");
-const Q = QUESTIONS.map((q) => ({ ...q, text: th(q.text) }));
+const Q = QUESTIONS.map((q) => ({
+  ...q,
+  text: th(q.text),
+  choices: q.choices && q.choices.map(([label, value]) => [th(label), value]),
+}));
 const CODES = Object.keys(TYPES);
 const BASES = [...new Set(CODES.map((c) => c.slice(0, 4)))];
-const T = Object.fromEntries(Object.entries(TYPES).map(([k, v]) => [k, v.map(th)]));
+const T = Object.fromEntries(Object.entries(TYPES).map(([k, v]) => [k, {
+  ...v,
+  name: th(v.name), tag: th(v.tag), good: th(v.good), care: th(v.care), grow: th(v.grow),
+  roles: v.roles.map(th),
+}]));
 const A = AXES.map((x) => ({ ...x, labA: th(x.labA), labB: th(x.labB), descA: th(x.descA), descB: th(x.descB) }));
 const G = Object.fromEntries(Object.entries(GUILDS).map(([k, v]) => [k, { ...v, line: th(v.line) }]));
 
@@ -280,59 +289,26 @@ const axisPalette = `
   .vs li[data-same="0"] .tagx { color: var(--c); }
   .kept { margin: 16px 0 0; font-size: 13px; color: var(--ink-faint); line-height: 1.6; }
 
-  /* ---------- ทำเนียบ 64 ตำแหน่ง ---------- */
+  /* ---------- จุดแข็ง/จุดระวัง/สายงาน/ประโยคเติบโต ---------- */
+  .facts { list-style: none; margin: 22px 0 0; padding: 18px 0 0; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 13px; }
+  .facts li { display: flex; flex-direction: column; gap: 2px; }
+  .fk { font-size: 11.5px; color: var(--ink-faint); letter-spacing: .01em; }
+  .facts p { margin: 0; font-size: 14.5px; line-height: 1.6; color: var(--ink); }
+  .grow {
+    margin: 16px 0 0; padding: 13px 15px; font-size: 14.5px; line-height: 1.65;
+    color: var(--ink); background: color-mix(in srgb, var(--gold) 10%, var(--surface));
+    border-left: 3px solid var(--gold); border-radius: 0 3px 3px 0;
+  }
+  .grow:empty { display: none; }
+
+  /* ---------- การ์ดทำเนียบแบบกดขยาย ---------- */
+  /* ---------- ข้อ deep: ตัวเลือกยาวและไม่มีอิโมจิ ---------- */
+  .opts[data-custom="1"] button { align-items: flex-start; gap: 10px; padding: 13px 15px; }
+  .opts[data-custom="1"] .lab { line-height: 1.55; }
+  .opts[data-custom="1"] .key { align-self: center; }
+
   .dexlink { display: block; margin: 4px auto 0; font-family: inherit; font-size: 14px; color: var(--ink-soft); background: none; border: none; cursor: pointer; text-decoration: underline; text-underline-offset: 4px; }
   .dexlink:hover { color: var(--gold); }
-  .dexbar { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 2px; }
-  .dexbar h2 { font-family: Srisakdi, Sarabun, serif; font-weight: 700; font-size: clamp(24px, 6vw, 32px); margin: 0; line-height: 1.35; }
-  .dexsub { margin: 0 0 6px; font-size: 13.5px; color: var(--ink-faint); }
-
-  .dexsec { margin-top: 30px; }
-  .gh {
-    display: flex; align-items: center; gap: 11px; margin: 0 0 12px; padding: 11px 14px;
-    border: 1px solid color-mix(in srgb, var(--g) 40%, var(--line));
-    border-left: 4px solid var(--g);
-    border-radius: 3px; background: color-mix(in srgb, var(--g) 9%, var(--surface));
-  }
-  .gh .sg {
-    width: 30px; height: 30px; flex: none; display: grid; place-items: center; font-size: 15px;
-    color: var(--on-g); background: var(--g); border-radius: 50%; font-family: Sarabun, sans-serif;
-  }
-  .gh .gn { font-family: Srisakdi, Sarabun, serif; font-weight: 700; font-size: 19px; line-height: 1.35; color: var(--g); }
-  .gh .gl { display: block; font-family: Sarabun, sans-serif; font-weight: 400; font-size: 12px; color: var(--ink-faint); line-height: 1.5; }
-  .gh em { font-style: normal; font-family: "IBM Plex Mono", monospace; font-size: 11px; color: var(--ink-faint); margin-left: auto; flex: none; align-self: flex-start; }
-
-  .dexlist { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; }
-  .dexlist li {
-    background: var(--surface); border: 1px solid var(--line); border-top: 3px solid var(--g);
-    border-radius: 3px; padding: 13px 14px 12px; display: flex; flex-direction: column;
-  }
-  .dexlist li[data-me="1"] { border-color: var(--g); box-shadow: 0 0 0 2px color-mix(in srgb, var(--g) 22%, transparent); }
-  .crow { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }
-  .crow .av {
-    width: 26px; height: 26px; flex: none; display: grid; place-items: center; font-size: 13px;
-    color: var(--g); border: 1px solid color-mix(in srgb, var(--g) 50%, var(--line)); border-radius: 50%;
-  }
-  .crow .dc { font-family: "IBM Plex Mono", monospace; font-size: 11.5px; letter-spacing: .12em; color: var(--g); }
-  .dexlist .dn { font-family: Srisakdi, Sarabun, serif; font-weight: 700; font-size: 16.5px; line-height: 1.45; margin-bottom: 4px; }
-  .dexlist .dt { font-size: 12.5px; color: var(--ink-soft); line-height: 1.55; }
-  .dexmeta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 6px; }
-  .dexarchetype {
-    display: inline-flex; align-items: center; justify-content: center;
-    font-size: 8.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--g);
-    font-weight: 700; background: color-mix(in srgb, var(--g) 12%, var(--surface));
-    border: 1px solid color-mix(in srgb, var(--g) 35%, var(--line)); border-radius: 999px;
-    padding: 2px 7px; line-height: 1.5;
-  }
-  .chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; padding-top: 9px; border-top: 1px dashed var(--line); }
-  .chips span {
-    font-size: 11px; line-height: 1.7; color: var(--ink-faint);
-    border: 1px solid var(--line); border-radius: 999px; padding: 0 8px;
-  }
-  .dexlist li[data-me="1"] .me {
-    align-self: flex-start; font-size: 11px; color: var(--on-g); background: var(--g);
-    border-radius: 999px; padding: 1px 9px; margin-top: 10px;
-  }
 </style>
 
 <div class="wrap">
@@ -352,7 +328,7 @@ const axisPalette = `
 
   <section class="start" id="start">
     <div class="len" role="group" aria-label="ความยาวแบบทดสอบ">
-      <button data-rush="0" aria-pressed="true">เต็มยศ <i>90</i></button>
+      <button data-rush="0" aria-pressed="true">เต็มยศ <i>78</i></button>
       <button data-rush="1" aria-pressed="false">รีบไปทำงาน <i>30</i></button>
     </div>
     <div>
@@ -368,7 +344,7 @@ const axisPalette = `
       </button>
       <div class="ask" id="ask-compare">
         <input id="in-compare" list="dl-full" maxlength="9" placeholder="ENFP-TC" autocomplete="off" spellcheck="false" aria-label="ผลที่เคยได้" />
-        <datalist id="dl-full">{CODES.map((c) => <option value={c}>{TYPES[c][0]}</option>)}</datalist>
+        <datalist id="dl-full">{CODES.map((c) => <option value={c}>{TYPES[c].name}</option>)}</datalist>
         <button class="go" id="go-compare">เริ่ม 90 ข้อ</button>
         <p class="err" id="err-compare"></p>
       </div>
@@ -386,15 +362,6 @@ const axisPalette = `
       </div>
     </div>
     <button class="dexlink" id="dex-open">ดูทั้ง 64 ตำแหน่ง</button>
-  </section>
-
-  <section id="dex" hidden>
-    <div class="dexbar">
-      <h2 class="fx">ทำเนียบ 64 ตำแหน่ง</h2>
-      <button class="ghost" id="dex-close">← กลับ</button>
-    </div>
-    <p class="dexsub">{th("ทะเบียนพนักงานทั้งอาณาจักร แบ่งตาม 4 สังกัด สังกัดละ 16 ตำแหน่ง")}</p>
-    <div id="dex-body"></div>
   </section>
 
   <div class="stage" id="stage" hidden>
@@ -425,6 +392,12 @@ const axisPalette = `
       <p class="tag" id="rtag"></p>
       <p class="archetype" id="rarchetype"></p>
       <p class="kept" id="rkept" hidden></p>
+      <ul class="facts">
+        <li><span class="fk">จุดแข็งในงาน</span><p id="r-good"></p></li>
+        <li><span class="fk">จุดที่ต้องระวัง</span><p id="r-care"></p></li>
+        <li><span class="fk">สายงานที่เหมาะ</span><p id="r-roles"></p></li>
+      </ul>
+      <p class="grow" id="r-grow"></p>
       <div class="vs" id="rvs" hidden>
         <h3 class="fx" id="vs-head"></h3>
         <p class="sub" id="vs-sub"></p>
@@ -446,7 +419,7 @@ const axisPalette = `
   </footer>
 </div>
 
-<script is:inline define:vars={{ QUESTIONS: Q, AXES: A, CHOICES, TYPES: T, GUILDS: G, PER_AXIS, ARCHETYPES }}>
+<script is:inline define:vars={{ QUESTIONS: Q, AXES: A, CHOICES, TYPES: T, GUILDS: G, DRAW, DEPTHS, ARCHETYPES }}>
   const KEY = "mbti64.v4";
   const $ = (id) => document.getElementById(id);
   const card = $("card"), optBox = $("opts"), result = $("result"), stage = $("stage"), start = $("start");
@@ -472,18 +445,28 @@ const axisPalette = `
     return { base: t.slice(0, 4), AT: rest[0] || "", CS: rest[1] || "" };
   }
 
-  CHOICES.forEach((c, k) => {
-    const b = document.createElement("button");
-    b.type = "button";
-    b.dataset.side = c.side;
-    b.dataset.strength = String(Math.abs(c.value));
-    b.setAttribute("aria-pressed", "false");
-    b.innerHTML = '<span class="emo" aria-hidden="true"></span><span class="lab"></span><span class="key">' + (k + 1) + "</span>";
-    b.querySelector(".emo").textContent = c.icon;
-    b.querySelector(".lab").textContent = c.label;
-    b.onclick = () => answer(c.value);
-    optBox.appendChild(b);
-  });
+  // ข้อทั่วไปใช้ 4 ตัวเลือกมาตรฐาน ส่วนข้อ deep มีตัวเลือกเฉพาะของมันเอง เลยสร้างใหม่ทุกข้อ
+  const optsOf = (q) =>
+    q.choices ? q.choices.map(([label, value]) => ({ label, value, custom: true })) : CHOICES;
+
+  function renderOpts(q) {
+    const list = optsOf(q);
+    optBox.dataset.custom = q.choices ? "1" : "0";
+    optBox.innerHTML = "";
+    list.forEach((c, k) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.dataset.side = c.side || (c.value > 0 ? "yes" : "no");
+      b.dataset.strength = String(Math.abs(c.value));
+      b.setAttribute("aria-pressed", "false");
+      b.innerHTML = (c.custom ? "" : '<span class="emo" aria-hidden="true"></span>') +
+        '<span class="lab"></span><span class="key">' + (k + 1) + "</span>";
+      if (!c.custom) b.querySelector(".emo").textContent = c.icon;
+      b.querySelector(".lab").textContent = c.label;
+      b.onclick = () => answer(c.value);
+      optBox.appendChild(b);
+    });
+  }
 
   /* ---------- หน้าเลือกโหมด ---------- */
   function openAsk(which) {
@@ -494,9 +477,9 @@ const axisPalette = `
     });
     if (which) $("in-" + which).focus();
   }
-  // ฉบับรีบ: หยิบข้อที่ 1, 4, 7, 10, 13 ของแต่ละแกน (แกนละ 5 ข้อ) ยังได้ทั้งสองทิศทางครบ
   let rush = false;
-  const counts = () => ({ full: rush ? 30 : 90, up: rush ? 10 : 30 });
+  const perAxis = (r) => Object.values(DRAW[r ? "rush" : "full"]).reduce((a, b) => a + b, 0);
+  const counts = () => ({ full: perAxis(rush) * AXES.length, up: perAxis(rush) * UPGRADE_AXES.length });
   // ไล่เลขทีละขั้นตอนสลับโหมด 90 -> 89 -> ... -> 30
   function countTo(el, to, fmt) {
     const from = el._n === undefined ? to : el._n;
@@ -555,9 +538,40 @@ const axisPalette = `
   });
 
   const sig = (o) => (o ? o.base + o.AT + o.CS : "");
+  // สุ่มข้อจากคลัง: แต่ละแกนหยิบตามโควตาของแต่ละระดับ สลับทิศทาง + - ให้สมดุล แล้วค่อยสลับแกนวนกัน
+  function drawPlan(axes, mix) {
+    const shuffled = (arr) => arr.map((v) => [Math.random(), v]).sort((a, b) => a[0] - b[0]).map((x) => x[1]);
+    const lanes = axes.map((axis) => {
+      const picked = [];
+      Object.entries(mix).forEach(([depth, n]) => {
+        const bag = QUESTIONS.map((q, i) => ({ q, i })).filter((x) => x.q.axis === axis && x.q.depth === depth);
+        const pos = shuffled(bag.filter((x) => x.q.dir > 0));
+        const neg = shuffled(bag.filter((x) => x.q.dir < 0));
+        for (let k = 0; k < n; k++) {
+          const first = k % 2 === 0 ? pos : neg;
+          const hit = first.pop() || (k % 2 === 0 ? neg : pos).pop();
+          if (hit) picked.push(hit.i);
+        }
+      });
+      return shuffled(picked);
+    });
+    const out = [];
+    for (let k = 0; ; k++) {
+      const row = lanes.map((l) => l[k]).filter((x) => x !== undefined);
+      if (!row.length) break;
+      out.push(...row);
+    }
+    return out;
+  }
+
   function begin(mode, old) {
-    const same = S.mode === mode && !!S.rush === rush && sig(S.old) === sig(old);
-    S = { mode, old, rush, ans: same ? S.ans : {} };
+    const same = S.mode === mode && !!S.rush === rush && sig(S.old) === sig(old) && S.plan;
+    const axes = mode === "upgrade" ? UPGRADE_AXES : AXES.map((x) => x.key);
+    S = {
+      mode, old, rush,
+      plan: same ? S.plan : drawPlan(axes, DRAW[rush ? "rush" : "full"]),
+      ans: same ? S.ans : {},
+    };
     save();
     run();
   }
@@ -567,7 +581,6 @@ const axisPalette = `
     $("intro").hidden = false;
     stage.hidden = true;
     result.hidden = true;
-    $("dex").hidden = true;
     start.hidden = false;
     $("segs").hidden = false;
     $("count").textContent = "";
@@ -581,9 +594,14 @@ const axisPalette = `
     rush = !!S.rush;
     paintLen();
     syncCounts();
-    plan = QUESTIONS.map((q, i) => i).filter((i) =>
-      (S.mode === "upgrade" ? UPGRADE_AXES.includes(QUESTIONS[i].axis) : true) &&
-      (S.rush ? Math.floor(i / AXES.length) % 3 === 0 : true));
+    // ถ้าคลังคำถามถูกแก้จนหมายเลขข้อเพี้ยน ให้สุ่มใหม่แทนที่จะพัง
+    const ok = Array.isArray(S.plan) && S.plan.length && S.plan.every((i) => QUESTIONS[i]);
+    if (!ok) {
+      S.plan = drawPlan(S.mode === "upgrade" ? UPGRADE_AXES : AXES.map((x) => x.key), DRAW[S.rush ? "rush" : "full"]);
+      S.ans = {};
+      save();
+    }
+    plan = S.plan;
     const live = new Set(plan.map((i) => QUESTIONS[i].axis));
     AXES.forEach((x) => { document.querySelector('.seg[data-axis="' + x.key + '"]').hidden = !live.has(x.key); });
 
@@ -608,10 +626,12 @@ const axisPalette = `
   function draw(animate) {
     const q = QUESTIONS[plan[at]];
     card.style.setProperty("--c", "var(--c-" + q.axis + ")");
-    $("qnum").textContent = "ข้อ " + String(at + 1).padStart(2, "0") + " / " + plan.length;
+    const d = DEPTHS[q.depth] || DEPTHS.surface;
+    $("qnum").textContent = "ข้อ " + String(at + 1).padStart(2, "0") + " / " + plan.length + " · " + d.dot + " " + d.label;
     $("qtext").textContent = q.text;
+    renderOpts(q);
     optBox.querySelectorAll("button").forEach((b, k) =>
-      b.setAttribute("aria-pressed", String(CHOICES[k].value === S.ans[plan[at]])));
+      b.setAttribute("aria-pressed", String(optsOf(q)[k].value === S.ans[plan[at]])));
     $("back").disabled = at === 0;
     $("count").textContent = String(at + 1).padStart(2, "0") + " / " + plan.length;
 
@@ -643,7 +663,10 @@ const axisPalette = `
   $("back").onclick = () => { if (at > 0) { at--; draw(true); } };
   addEventListener("keydown", (e) => {
     if (stage.hidden) return;
-    if (e.key >= "1" && e.key <= "4") answer(CHOICES[+e.key - 1].value);
+    if (e.key >= "1" && e.key <= "4") {
+      const c = optsOf(QUESTIONS[plan[at]])[+e.key - 1];
+      if (c) answer(c.value);
+    }
     if (e.key === "Backspace" || e.key === "ArrowLeft") $("back").click();
   });
 
@@ -651,8 +674,12 @@ const axisPalette = `
   let share = "";
   function show() {
     const measured = new Set(plan.map((i) => QUESTIONS[i].axis));
-    const sum = {};
-    plan.forEach((i) => { const q = QUESTIONS[i]; sum[q.axis] = (sum[q.axis] || 0) + q.dir * (S.ans[i] || 0); });
+    const sum = {}, top = {};
+    plan.forEach((i) => {
+      const q = QUESTIONS[i], w = q.weight || 1;
+      sum[q.axis] = (sum[q.axis] || 0) + q.dir * (S.ans[i] || 0) * w;
+      top[q.axis] = (top[q.axis] || 0) + 2 * w; // คะแนนเต็มของแกนนี้ ใช้หารเป็นเปอร์เซ็นต์
+    });
 
     // แกนที่ไม่ได้วัดในโหมดอัพเกรด ใช้ตัวอักษรจากร่างเดิม
     const oldLetters = S.old ? [S.old.base[0], S.old.base[1], S.old.base[2], S.old.base[3], S.old.AT, S.old.CS] : [];
@@ -660,7 +687,8 @@ const axisPalette = `
       measured.has(x.key) ? (sum[x.key] >= 0 ? x.a : x.b) : oldLetters[k]);
     const base = letters.slice(0, 4).join("");
     const full = base + "-" + letters[4] + letters[5];
-    const [nick, tag] = TYPES[full];
+    const info = TYPES[full];
+    const nick = info.name, tag = info.tag;
     const g = GUILDS[guildOf(base)];
 
     $("rsigil").textContent = g.sigil;
@@ -669,6 +697,10 @@ const axisPalette = `
     $("rcode").textContent = full;
     $("rnick").textContent = nick;
     $("rtag").textContent = tag;
+    $("r-good").textContent = info.good;
+    $("r-care").textContent = info.care;
+    $("r-roles").textContent = info.roles.join(" · ");
+    $("r-grow").textContent = info.grow;
     $("rarchetype").textContent = "Archetype · " + (ARCHETYPES[base] || "");
 
     const kept = $("rkept");
@@ -706,8 +738,7 @@ const axisPalette = `
     AXES.forEach((x) => {
       if (!measured.has(x.key)) return;
       const first = sum[x.key] >= 0;
-      const per = plan.filter((i) => QUESTIONS[i].axis === x.key).length;
-      const pct = Math.round(50 + (sum[x.key] / (per * 2)) * 50);
+      const pct = Math.round(50 + (sum[x.key] / top[x.key]) * 50);
       const li = document.createElement("li");
       li.className = "stat";
       li.style.setProperty("--c", "var(--c-" + x.key + ")");
@@ -749,76 +780,10 @@ const axisPalette = `
   /* ---------- ทำเนียบ 64 ตำแหน่ง ---------- */
   let myCode = "";
   const GUILD_ORDER = ["SP", "SJ", "NF", "NT"];
-  // ป้ายนิสัยสองแกนลึกจากตัวอักษรท้ายรหัส เช่น -AC = นิ่ง มั่นใจ + ทำงานกับทีม
-  const deepLabel = (k, letter) => (AXES[k].a === letter ? AXES[k].labA : AXES[k].labB);
-
-  function buildDex() {
-    const body = $("dex-body");
-    if (body.childElementCount) return;
-    GUILD_ORDER.forEach((key) => {
-      const g = GUILDS[key];
-      const sec = document.createElement("section");
-      sec.className = "dexsec";
-      sec.style.setProperty("--g", "var(--g-" + key + ")");
-      sec.style.setProperty("--on-g", "var(--surface)");
-
-      const h = document.createElement("div");
-      h.className = "gh";
-      h.innerHTML = '<span class="sg"></span><span><span class="gn"></span><span class="gl"></span></span><em>16 ตำแหน่ง</em>';
-      h.querySelector(".sg").textContent = g.sigil;
-      h.querySelector(".gn").textContent = g.name;
-      h.querySelector(".gl").textContent = g.line;
-
-      const ul = document.createElement("ul");
-      ul.className = "dexlist";
-      Object.keys(TYPES).filter((c) => guildOf(c.slice(0, 4)) === key).forEach((c) => {
-        const [nick, tag] = TYPES[c];
-        const base = c.slice(0, 4);
-        const li = document.createElement("li");
-        li.dataset.code = c;
-        li.innerHTML =
-          '<div class="crow"><span class="av"></span><span class="dc"></span></div>' +
-          '<div class="dexmeta"><span class="dn"></span><span class="dexarchetype"></span></div>' +
-          '<span class="dt"></span>' +
-          '<div class="chips"><span class="c1"></span><span class="c2"></span></div>';
-        li.querySelector(".av").textContent = g.sigil;
-        li.querySelector(".dc").textContent = c;
-        li.querySelector(".dn").textContent = nick;
-        li.querySelector(".dexarchetype").textContent = (ARCHETYPES[base] || "").split(" · ")[0];
-        li.querySelector(".dt").textContent = tag;
-        li.querySelector(".c1").textContent = deepLabel(4, c[5]);
-        li.querySelector(".c2").textContent = deepLabel(5, c[6]);
-        ul.appendChild(li);
-      });
-      sec.append(h, ul);
-      body.appendChild(sec);
-    });
-  }
-  function openDex() {
-    buildDex();
-    $("dex-body").querySelectorAll("li").forEach((li) => {
-      const me = li.dataset.code === myCode;
-      li.dataset.me = me ? "1" : "0";
-      const old = li.querySelector(".me");
-      if (me && !old) { const b = document.createElement("span"); b.className = "me"; b.textContent = "ตำแหน่งของคุณ"; li.appendChild(b); }
-      if (!me && old) old.remove();
-    });
-    start.hidden = true;
-    stage.hidden = true;
-    result.hidden = true;
-    $("segs").hidden = true;
-    $("intro").hidden = true;
-    $("dex").hidden = false;
-    scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
-  }
-  $("dex-open").onclick = () => { window.location.href = "/dex"; };
-  $("dex-open2").onclick = () => { window.location.href = "/dex"; };
-  $("dex-close").onclick = () => {
-    $("dex").hidden = true;
-    $("intro").hidden = false;
-    if (myCode && S.mode) { result.hidden = false; scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" }); }
-    else home();
-  };
+  // พาธสัมพัทธ์ เผื่อหน้านี้ไม่ได้อยู่ที่ราก
+  const goDex = () => { location.href = "dex/"; };
+  $("dex-open").onclick = goDex;
+  $("dex-open2").onclick = goDex;
 
   $("share").onclick = async (e) => {
     const b = e.currentTarget;
