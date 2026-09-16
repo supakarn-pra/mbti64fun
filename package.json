@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
+    "stickers": "node scripts/stickers.mjs",
     "preview": "astro preview"
   },
   "devDependencies": {

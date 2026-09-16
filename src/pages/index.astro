@@ -225,7 +225,11 @@ const axisPalette = `
     border: 1px solid color-mix(in srgb, var(--gold) 35%, transparent); border-radius: 2px; pointer-events: none;
   }
   /* ไม่ใส่ letter-spacing กับข้อความไทย สระกับวรรณยุกต์จะลอยห่างจากตัวอักษร */
-  .issued { font-size: 12px; color: var(--ink-faint); margin: 0 0 18px; }
+  .issued { font-size: 12px; color: var(--ink-faint); margin: 0 0 4px; }
+  .sticker {
+    display: block; width: min(230px, 62%); height: auto; margin: 0 auto 6px;
+    filter: drop-shadow(0 6px 14px rgba(20, 14, 30, .22));
+  }
   .guild { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
   .sigil {
     width: 40px; height: 40px; flex: none; display: grid; place-items: center; font-size: 19px;
@@ -473,6 +477,7 @@ const axisPalette = `
   <section id="result" hidden aria-live="polite">
     <div class="rcard">
       <p class="issued">บัตรประจำตัวพนักงานแห่งอาณาจักร</p>
+      <img class="sticker" id="rpic" alt="" width="320" height="320" decoding="async" />
       <div class="guild">
         <span class="sigil" id="rsigil"></span>
         <span>
@@ -853,6 +858,7 @@ const axisPalette = `
     const nick = info.name, tag = info.tag;
     const g = GUILDS[guildOf(base)];
 
+    $("rpic").src = "mob/" + full + ".webp";
     $("rsigil").innerHTML = '<svg class="ic" viewBox="0 0 24 24" fill="none" aria-hidden="true">' + (ICONS[g.icon] || "") + "</svg>";
     $("rguild").textContent = g.name;
     $("rgline").textContent = g.line;
