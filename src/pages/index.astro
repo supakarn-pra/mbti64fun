@@ -16,7 +16,7 @@ const CODES = Object.keys(TYPES);
 const BASES = [...new Set(CODES.map((c) => c.slice(0, 4)))];
 const T = Object.fromEntries(Object.entries(TYPES).map(([k, v]) => [k, {
   ...v,
-  name: th(v.name), tag: th(v.tag), good: th(v.good), care: th(v.care), grow: th(v.grow),
+  name: th(v.name), tag: th(v.tag), over: th(v.over), good: th(v.good), care: th(v.care), grow: th(v.grow),
   roles: v.roles.map(th),
 }]));
 const A = AXES.map((x) => ({ ...x, labA: th(x.labA), labB: th(x.labB), descA: th(x.descA), descB: th(x.descB) }));
@@ -311,7 +311,11 @@ const axisPalette = `
   .kept { margin: 16px 0 0; font-size: 13px; color: var(--ink-faint); line-height: 1.6; }
 
   /* ---------- จุดแข็ง/จุดระวัง/สายงาน/ประโยคเติบโต ---------- */
-  .facts { list-style: none; margin: 22px 0 0; padding: 18px 0 0; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 13px; }
+  .over {
+    margin: 20px 0 0; padding-top: 18px; border-top: 1px solid var(--line);
+    font-size: 15px; line-height: 1.85; color: var(--ink-soft);
+  }
+  .facts { list-style: none; margin: 20px 0 0; padding: 0; display: flex; flex-direction: column; gap: 13px; }
   .facts li { display: flex; flex-direction: column; gap: 2px; }
   .fk { font-size: 11.5px; color: var(--ink-faint); letter-spacing: .01em; }
   .facts p { margin: 0; font-size: 14.5px; line-height: 1.6; color: var(--ink); }
@@ -414,6 +418,7 @@ const axisPalette = `
       <p class="tag" id="rtag"></p>
       <p class="archetype" id="rarchetype"></p>
       <p class="kept" id="rkept" hidden></p>
+      <p class="over" id="r-over"></p>
       <ul class="facts">
         <li><span class="fk">จุดแข็งในงาน</span><p id="r-good"></p></li>
         <li><span class="fk">จุดที่ต้องระวัง</span><p id="r-care"></p></li>
@@ -720,6 +725,7 @@ const axisPalette = `
     $("rcode").textContent = full;
     $("rnick").textContent = nick;
     $("rtag").textContent = tag;
+    $("r-over").textContent = info.over;
     $("r-good").textContent = info.good;
     $("r-care").textContent = info.care;
     $("r-roles").textContent = info.roles.join(" · ");

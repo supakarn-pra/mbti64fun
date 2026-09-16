@@ -268,7 +268,11 @@ const guildPalette = `
         margin: 10px 0 0; font-family: "IBM Plex Mono", monospace; font-size: 11.5px;
         letter-spacing: .08em; color: var(--ink-faint);
       }
-      .facts { list-style: none; margin: 22px 0 0; padding: 18px 0 0; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 13px; }
+      .over {
+        margin: 20px 0 0; padding-top: 18px; border-top: 1px solid var(--line);
+        font-size: 15px; line-height: 1.85; color: var(--ink-soft);
+      }
+      .facts { list-style: none; margin: 20px 0 0; padding: 0; display: flex; flex-direction: column; gap: 13px; }
       .facts li { display: flex; flex-direction: column; gap: 2px; }
       .fk { font-size: 11.5px; color: var(--ink-faint); }
       .facts p { margin: 0; font-size: 14.5px; line-height: 1.6; color: var(--ink); }
@@ -367,6 +371,7 @@ const guildPalette = `
           <h2 class="nick fx" id="s-name"></h2>
           <p class="tag" id="s-tag"></p>
           <p class="archetype" id="s-arch"></p>
+          <p class="over" id="s-over"></p>
           <ul class="facts">
             <li><span class="fk">จุดแข็งในงาน</span><p id="s-good"></p></li>
             <li><span class="fk">จุดที่ต้องระวัง</span><p id="s-care"></p></li>
@@ -393,6 +398,7 @@ const guildPalette = `
           $("s-name").textContent = t.name;
           $("s-tag").textContent = t.tag;
           $("s-arch").textContent = "Archetype · " + (ARCHETYPES[code.slice(0, 4)] || "");
+          $("s-over").textContent = t.over;
           $("s-good").textContent = t.good;
           $("s-care").textContent = t.care;
           $("s-roles").textContent = t.roles.join(" · ");
