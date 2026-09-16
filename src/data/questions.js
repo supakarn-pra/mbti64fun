@@ -357,8 +357,9 @@ export const CHOICES = [
   { label: "ไม่เห็นด้วยเลยสักนิด", value: -2, side: "no", icon: "🙅" },
 ];
 
+// ป้ายระดับความลึก โชว์แค่จุดสีเล็ก ๆ ส่วน label เก็บไว้ใน title ให้คนอยากรู้เอาเมาส์ชี้
 export const DEPTHS = {
-  surface: { label: "ทั่วไป", dot: "🟢" },
-  situational: { label: "สถานการณ์", dot: "🟡" },
-  deep: { label: "ตัดสินใจยาก", dot: "🔴" },
+  surface: { label: "คำถามทั่วไป", color: "#8C8376" },
+  situational: { label: "สถานการณ์บังคับเลือก", color: "#C9901B" },
+  deep: { label: "ภาวะกลืนไม่เข้าคายไม่ออก", color: "#B4442B" },
 };

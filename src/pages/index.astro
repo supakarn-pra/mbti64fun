@@ -114,14 +114,23 @@ const axisPalette = `
   .brow { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
   .mark { font-size: 19px; line-height: 1.4; letter-spacing: .01em; }
   .mark span { color: var(--gold); }
-  .count {
-    font-family: "IBM Plex Mono", monospace; font-size: 12px;
-    color: var(--ink-faint); font-variant-numeric: tabular-nums; flex: none;
-  }
   .segs { display: flex; gap: 5px; margin-top: 9px; }
   .seg { flex: 1; height: 5px; border-radius: 3px; background: var(--line); overflow: hidden; }
   .seg i { display: block; height: 100%; width: 0; background: var(--sc); transition: width .3s ease; }
   .seg[data-live="1"] { background: color-mix(in srgb, var(--sc) 25%, var(--line)); }
+  /* มอนสเตอร์ที่ล้มแล้ว หรี่ลงให้รู้ว่าผ่านไปแล้ว */
+  .seg[data-dead="1"] { opacity: .4; }
+  .seg.hit { animation: hit .5s ease; }
+  @keyframes hit {
+    0% { transform: scaleY(1); }
+    35% { transform: scaleY(2.4); filter: brightness(1.5); }
+    100% { transform: scaleY(1); }
+  }
+  .slain {
+    display: flex; align-items: center; gap: 5px; flex: none;
+    font-size: 12px; color: var(--ink-faint); font-variant-numeric: tabular-nums;
+  }
+  .slain b { color: var(--gold); font-weight: 600; }
 
   /* ---------- ใบประเมิน ---------- */
   .intro {
@@ -142,7 +151,8 @@ const axisPalette = `
   }
   .card.turn { animation: slip .28s ease; }
   @keyframes slip { from { opacity: 0; transform: translateY(10px); } }
-  .qnum { font-size: 12.5px; letter-spacing: .04em; color: var(--c); margin: 0 0 12px; font-weight: 600; }
+  .qnum { display: flex; align-items: center; gap: 7px; font-size: 12.5px; letter-spacing: .04em; color: var(--c); margin: 0 0 12px; font-weight: 600; }
+  .dep { width: 6px; height: 6px; border-radius: 50%; flex: none; opacity: .8; }
   .qtext { font-size: clamp(20px, 5vw, 25px); line-height: 1.6; font-weight: 400; margin: 0 0 24px; text-wrap: pretty; }
   .opts { display: flex; flex-direction: column; gap: 9px; }
   .opts button {
@@ -247,6 +257,25 @@ const axisPalette = `
   .t-quiet:hover { color: var(--ink); }
   .t-quiet:focus-visible { outline: 2px solid var(--ink-faint); outline-offset: 2px; }
 
+  /* ---------- ถามก่อนออกจากแบบทดสอบที่ทำค้างไว้ ---------- */
+  dialog { border: none; padding: 0; background: transparent; color: var(--ink); max-width: min(420px, 100vw - 32px); width: 100%; }
+  dialog::backdrop { background: rgba(10, 8, 16, .5); backdrop-filter: blur(3px); }
+  .leavebox {
+    background: var(--surface); border: 1px solid var(--gold); border-top: 4px solid var(--gold);
+    border-radius: 4px; padding: 26px 22px 20px;
+  }
+  dialog[open] .leavebox { animation: pop .2s ease; }
+  @keyframes pop { from { opacity: 0; transform: translateY(10px); } }
+  .leavebox h2 { font-size: 22px; line-height: 1.4; margin: 0 0 8px; }
+  .leavebox p { margin: 0; font-size: 14.5px; line-height: 1.7; color: var(--ink-soft); }
+  .leaveact { display: flex; align-items: center; justify-content: flex-end; gap: 6px; margin-top: 20px; }
+  .leaveact button {
+    font-family: inherit; font-size: 14px; border-radius: 3px; padding: 10px 18px; cursor: pointer;
+    background: var(--gold); border: 1px solid var(--gold); color: var(--on-gold); font-weight: 600;
+  }
+  .leaveact .t-quiet { margin: 0; background: none; border: none; color: var(--ink-faint); font-weight: 400; }
+  .leaveact button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
   footer { margin-top: 32px; font-size: 12.5px; color: var(--ink-faint); line-height: 1.7; text-align: center; }
   @media (prefers-reduced-motion: reduce) { *, *::before { animation: none !important; transition: none !important; } }
 
@@ -341,7 +370,10 @@ const axisPalette = `
   <div class="top">
     <div class="brow">
       <span class="mark fx">64 ตำแหน่งใน<span>ต่างโลก</span></span>
-      <span class="count" id="count"></span>
+      <span class="slain" id="slain" hidden>
+        <svg class="ic" viewBox="0 0 24 24" fill="none" aria-hidden="true" set:html={ICONS.swords}></svg>
+        <b id="slain-n">0</b> / <span id="slain-all">6</span> ตัว
+      </span>
     </div>
     <div class="segs" id="segs">
       {AXES.map((x) => (
@@ -440,6 +472,17 @@ const axisPalette = `
       </div>
     </div>
   </section>
+
+  <dialog id="leave" aria-label="ยืนยันกลับหน้าแรก">
+    <div class="leavebox">
+      <h2 class="fx">กลับหน้าแรกเลยไหม</h2>
+      <p id="leave-msg"></p>
+      <div class="leaveact">
+        <button class="t-quiet" id="leave-stay">ทำต่อ</button>
+        <button id="leave-go">กลับหน้าแรก</button>
+      </div>
+    </div>
+  </dialog>
 
   <footer>
     {th("ทำขึ้นเพื่อความสนุกในทีม ไม่ใช่เครื่องมือวัดผลทางจิตวิทยา")}<br />
@@ -583,11 +626,17 @@ const axisPalette = `
       });
       return shuffled(picked);
     });
+    // จัดเป็นด่านละ 2 แกน สลับกันภายในด่าน จะได้ล้มมอนสเตอร์ทีละคู่ระหว่างทาง
+    // ไม่ใช่สลับทั้ง 6 แกนวนไปเรื่อย ๆ แล้วไปตายพร้อมกันหมดตอนท้าย
+    const order = shuffled(lanes.map((l, i) => i));
     const out = [];
-    for (let k = 0; ; k++) {
-      const row = lanes.map((l) => l[k]).filter((x) => x !== undefined);
-      if (!row.length) break;
-      out.push(...row);
+    for (let c = 0; c < order.length; c += 2) {
+      const pair = order.slice(c, c + 2).map((i) => lanes[i]);
+      for (let k = 0; ; k++) {
+        const row = pair.map((l) => l[k]).filter((x) => x !== undefined);
+        if (!row.length) break;
+        out.push(...shuffled(row));
+      }
     }
     return out;
   }
@@ -611,11 +660,21 @@ const axisPalette = `
     result.hidden = true;
     start.hidden = false;
     $("segs").hidden = false;
-    $("count").textContent = "";
+    $("slain").hidden = true;
     $("intro").textContent = "แบบประเมินตำแหน่งประจำปี · ฝ่ายบุคคลแห่งอาณาจักร";
     scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
   }
-  $("home").onclick = home;
+  // ตอบไปแล้วเยอะ ๆ กดพลาดทีเดียวจะเสียใจ เลยถามก่อน
+  $("home").onclick = () => {
+    const done = plan.filter((i) => S.ans[i] !== undefined).length;
+    if (!done) return home();
+    $("leave-msg").textContent =
+      "ตอบไปแล้ว " + done + " ข้อ คำตอบยังถูกเก็บไว้ ถ้ากลับเข้ามาด้วยโหมดและความยาวเดิมจะทำต่อจากข้อที่ค้างได้เลย";
+    $("leave").showModal();
+  };
+  $("leave-stay").onclick = () => $("leave").close();
+  $("leave-go").onclick = () => { $("leave").close(); home(); };
+  $("leave").addEventListener("click", (e) => { if (e.target === $("leave")) $("leave").close(); });
 
   /* ---------- ทำแบบทดสอบ ---------- */
   function run() {
@@ -655,24 +714,40 @@ const axisPalette = `
     const q = QUESTIONS[plan[at]];
     card.style.setProperty("--c", "var(--c-" + q.axis + ")");
     const d = DEPTHS[q.depth] || DEPTHS.surface;
-    $("qnum").textContent = "ข้อ " + String(at + 1).padStart(2, "0") + " / " + plan.length + " · " + d.dot + " " + d.label;
+    $("qnum").innerHTML = '<i class="dep"></i>ข้อ ' + String(at + 1).padStart(2, "0") + " / " + plan.length;
+    const dep = $("qnum").querySelector(".dep");
+    dep.style.background = d.color;
+    dep.title = d.label;
     $("qtext").textContent = q.text;
     renderOpts(q);
     optBox.querySelectorAll("button").forEach((b, k) =>
       b.setAttribute("aria-pressed", String(optsOf(q)[k].value === S.ans[plan[at]])));
     $("back").disabled = at === 0;
-    $("count").textContent = String(at + 1).padStart(2, "0") + " / " + plan.length;
 
     const left = plan.filter((i) => S.ans[i] === undefined).length;
     $("left").textContent = left ? "เหลืออีก " + left + " ข้อ" : "ตอบครบแล้ว";
 
+    // แต่ละแกนคือมอนสเตอร์หนึ่งตัว ตอบครบแกนไหน = ล้มตัวนั้น
+    let slain = 0, alive = 0;
     AXES.forEach((x) => {
       const inPlan = plan.filter((i) => QUESTIONS[i].axis === x.key);
+      if (!inPlan.length) return;
+      alive++;
       const done = inPlan.filter((i) => S.ans[i] !== undefined).length;
+      const dead = done === inPlan.length;
+      if (dead) slain++;
       const seg = document.querySelector('.seg[data-axis="' + x.key + '"]');
-      seg.querySelector("i").style.width = (inPlan.length ? done / inPlan.length : 0) * 100 + "%";
+      seg.querySelector("i").style.width = (done / inPlan.length) * 100 + "%";
       seg.dataset.live = q.axis === x.key ? "1" : "0";
+      if (dead && seg.dataset.dead !== "1" && !reduce) {
+        seg.classList.add("hit");
+        setTimeout(() => seg.classList.remove("hit"), 500);
+      }
+      seg.dataset.dead = dead ? "1" : "0";
     });
+    $("slain").hidden = false;
+    $("slain-n").textContent = slain;
+    $("slain-all").textContent = alive;
 
     if (animate && !reduce) { card.classList.remove("turn"); void card.offsetWidth; card.classList.add("turn"); }
   }
@@ -794,7 +869,7 @@ const axisPalette = `
     start.hidden = true;
     result.hidden = false;
     $("segs").hidden = true;
-    $("count").textContent = "";
+    $("slain").hidden = true;
     scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
   }
 
