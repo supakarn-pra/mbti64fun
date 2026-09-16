@@ -2,10 +2,10 @@
 // name/tag = ชื่อกับคำโปรย  good = จุดแข็งในงาน  care = จุดที่ต้องระวัง  roles = สายงานที่เหมาะ  grow = ประโยคเติบโต
 
 export const GUILDS = {
-  NT: { name: "กองทัพจอมมาร", sigil: "☾", line: "ฝ่ายวางแผนและเวทมนตร์ชั้นสูง ประชุมดึกเป็นปกติ", light: "#6A43B6", dark: "#B79BF7" },
-  NF: { name: "วิหารแสง", sigil: "✦", line: "ฝ่ายดูแลจิตใจและอุดมการณ์ของอาณาจักร", light: "#14756D", dark: "#5CC8BD" },
-  SJ: { name: "สำนักราชวัง", sigil: "♛", line: "ฝ่ายระเบียบ เอกสาร และงบประมาณหลวง", light: "#8A6A15", dark: "#E0B65E" },
-  SP: { name: "กิลด์ผู้กล้า", sigil: "†", line: "ฝ่ายหน้างาน รับเควสต์ด่วนทุกเช้า", light: "#AE432A", dark: "#F08A64" },
+  NT: { icon: "moon", name: "กองทัพจอมมาร", sigil: "☾", line: "ฝ่ายวางแผนและเวทมนตร์ชั้นสูง ประชุมดึกเป็นปกติ", light: "#6A43B6", dark: "#B79BF7" },
+  NF: { icon: "sun", name: "วิหารแสง", sigil: "✦", line: "ฝ่ายดูแลจิตใจและอุดมการณ์ของอาณาจักร", light: "#14756D", dark: "#5CC8BD" },
+  SJ: { icon: "crown", name: "สำนักราชวัง", sigil: "♛", line: "ฝ่ายระเบียบ เอกสาร และงบประมาณหลวง", light: "#8A6A15", dark: "#E0B65E" },
+  SP: { icon: "swords", name: "กิลด์ผู้กล้า", sigil: "†", line: "ฝ่ายหน้างาน รับเควสต์ด่วนทุกเช้า", light: "#AE432A", dark: "#F08A64" },
 };
 
 export const ARCHETYPES = {
