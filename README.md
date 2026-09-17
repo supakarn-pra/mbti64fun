@@ -52,16 +52,22 @@ npm run stickers -- /path/to/MBTI-64-SD-Stickers
 npm run brand
 ```
 
-ถ้าเอาขึ้นโดเมนจริง ควรแก้ `og:image` ในหน้า astro ให้เป็น URL เต็ม
-เพราะบางแอป (เช่นบางเวอร์ชันของ LINE) ไม่ไล่พาธสัมพัทธ์ให้
+`og:image` กับ `og:url` เป็น URL เต็ม สร้างจาก `site` ใน [`astro.config.mjs`](astro.config.mjs)
+ย้ายโดเมนเมื่อไหร่แก้บรรทัดเดียวตรงนั้น ที่เหลือตามไปเอง
+(ต้องเป็น URL เต็ม เพราะบางแอปอย่างบางเวอร์ชันของ LINE ไม่ไล่พาธสัมพัทธ์ให้)
 
 ## รัน
 
 ```bash
 npm install
 npm run dev     # แก้สด
-npm run build   # ได้ dist/index.html
+npm run build   # ได้ dist/
 ```
+
+## deploy
+
+ขึ้น Vercel — ตรวจเจอว่าเป็น Astro เองแล้วรัน `npm run build` เสิร์ฟจาก `dist/`
+ไม่ต้องมีไฟล์คอนฟิกอะไรเพิ่ม
 
 ## หมายเหตุเรื่องภาษาไทย
 
