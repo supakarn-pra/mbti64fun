@@ -43,6 +43,18 @@
 npm run stickers -- /path/to/MBTI-64-SD-Stickers
 ```
 
+## favicon กับภาพพรีวิวตอนแชร์
+
+`public/favicon.svg` `favicon-32.png` `favicon-192.png` `apple-touch-icon.png` และ `og.png` (1200×630)
+สร้างใหม่ได้ด้วย
+
+```bash
+npm run brand
+```
+
+ถ้าเอาขึ้นโดเมนจริง ควรแก้ `og:image` ในหน้า astro ให้เป็น URL เต็ม
+เพราะบางแอป (เช่นบางเวอร์ชันของ LINE) ไม่ไล่พาธสัมพัทธ์ให้
+
 ## รัน
 
 ```bash
