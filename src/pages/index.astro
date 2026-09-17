@@ -250,11 +250,8 @@ const axisPalette = `
     filter: drop-shadow(0 6px 14px rgba(20, 14, 30, .22));
   }
   .guild { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
-  .sigil {
-    width: 40px; height: 40px; flex: none; display: grid; place-items: center; font-size: 19px;
-    color: var(--gold); border: 1px solid var(--gold); border-radius: 50%;
-  }
-  .sigil .ic { width: 20px; height: 20px; vertical-align: 0; }
+  .sigil { width: 54px; height: 54px; flex: none; display: block; }
+  .sigil img { display: block; width: 100%; height: 100%; object-fit: contain; }
   .gname { font-size: 17px; line-height: 1.3; }
   .gline { display: block; font-family: Sarabun, sans-serif; font-weight: 400; font-size: 12.5px; color: var(--ink-faint); line-height: 1.5; }
   .code { font-family: "IBM Plex Mono", monospace; font-size: 15px; letter-spacing: .22em; color: var(--gold); margin: 0; }
@@ -878,7 +875,7 @@ const axisPalette = `
     const g = GUILDS[guildOf(base)];
 
     $("rpic").src = "mob/" + full + ".webp";
-    $("rsigil").innerHTML = '<svg class="ic" viewBox="0 0 24 24" fill="none" aria-hidden="true">' + (ICONS[g.icon] || "") + "</svg>";
+    $("rsigil").innerHTML = '<img src="crest/' + guildOf(base) + '.webp" alt="" width="160" height="160" decoding="async">';
     $("rguild").textContent = g.name;
     $("rgline").textContent = g.line;
     $("rcode").textContent = full;

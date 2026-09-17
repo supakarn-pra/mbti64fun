@@ -153,11 +153,8 @@ const guildPalette = `
         border-radius: 4px;
         background: color-mix(in srgb, var(--g) 9%, var(--surface));
       }
-      .sg {
-        width: 32px; height: 32px; display: grid; place-items: center;
-        border-radius: 50%; background: var(--g); color: var(--surface);
-        font-size: 15px; font-weight: 700;
-      }
+      .sg { width: 46px; height: 46px; flex: none; display: block; }
+      .sg img { display: block; width: 100%; height: 100%; object-fit: contain; }
       .gn {
         font-size: 20px; line-height: 1.3; color: var(--g);
       }
@@ -240,7 +237,7 @@ const guildPalette = `
         line-height: 1.55;
       }
       .ic { width: 1.05em; height: 1.05em; flex: none; stroke-width: 1.6; vertical-align: -.17em; }
-      .sg .ic, .av .ic { width: 62%; height: 62%; vertical-align: 0; }
+      .av .ic { width: 62%; height: 62%; vertical-align: 0; }
       a.home { text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
 
       .thumb { display: block; width: 100%; max-width: 132px; height: auto; margin: 2px auto 6px; }
@@ -278,11 +275,8 @@ const guildPalette = `
       .x:hover { color: var(--ink); border-color: var(--ink-faint); }
       .x .ic { width: 17px; height: 17px; vertical-align: 0; }
       .sheetbox .guild { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
-      .sheetbox .sigil {
-        width: 40px; height: 40px; flex: none; display: grid; place-items: center;
-        color: var(--g); border: 1px solid var(--g); border-radius: 50%;
-      }
-      .sheetbox .sigil .ic { width: 20px; height: 20px; vertical-align: 0; }
+      .sheetbox .sigil { width: 52px; height: 52px; flex: none; display: block; }
+      .sheetbox .sigil img { display: block; width: 100%; height: 100%; object-fit: contain; }
       .sheetbox .gname { font-size: 17px; line-height: 1.3; }
       .sheetbox .gline { display: block; font-size: 12.5px; color: var(--ink-faint); line-height: 1.5; }
       .sheetbox .code { font-family: "IBM Plex Mono", monospace; font-size: 15px; letter-spacing: .22em; color: var(--g); margin: 0; }
@@ -341,7 +335,7 @@ const guildPalette = `
         return (
           <section class="dexsec" style={`--g: var(--g-${key});`}>
             <div class="gh">
-              <span class="sg"><svg class="ic" viewBox="0 0 24 24" fill="none" aria-hidden="true" set:html={ICONS[g.icon]} /></span>
+              <span class="sg"><img src={`../crest/${key}.webp`} alt="" width="160" height="160" decoding="async" /></span>
               <div>
                 <div class="gn fx">{g.name}</div>
                 <span class="gl">{g.line}</span>
@@ -418,7 +412,7 @@ const guildPalette = `
           const code = b.dataset.code, t = TYPES[code], key = guildOf(code.slice(0, 4)), g = GUILDS[key];
           sheet.style.setProperty("--g", "var(--g-" + key + ")");
           $("s-pic").src = "../mob/" + code + ".webp";
-          $("s-sigil").innerHTML = '<svg class="ic" viewBox="0 0 24 24" fill="none" aria-hidden="true">' + (ICONS[g.icon] || "") + "</svg>";
+          $("s-sigil").innerHTML = '<img src="../crest/' + key + '.webp" alt="" width="160" height="160" decoding="async">';
           $("s-guild").textContent = g.name;
           $("s-line").textContent = g.line;
           $("s-code").textContent = code;

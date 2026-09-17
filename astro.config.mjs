@@ -4,6 +4,6 @@ import { defineConfig } from "astro/config";
 // ตัวหน้าเว็บยังอ้างไฟล์แบบพาธสัมพัทธ์ทั้งหมด เลยย้ายไปวางโฟลเดอร์ไหนก็ยังใช้ได้
 // ย้ายโดเมนเมื่อไหร่ แก้บรรทัดเดียวตรงนี้
 export default defineConfig({
-  site: "https://supakarn-pra.github.io/mbti64fun/",
+  site: "https://mbti64-emp.vercel.app/", // ตามที่ระบุไว้ใน README ของชุด web assets
   build: { inlineStylesheets: "always" },
 });
