@@ -2,6 +2,7 @@
 import { AXES, QUESTIONS, CHOICES, DRAW, DEPTHS } from "../data/questions.js";
 import { TYPES, GUILDS, ARCHETYPES } from "../data/types.js";
 import { ICONS } from "../data/icons.js";
+import Analytics from "@vercel/analytics/astro";
 
 // เบราว์เซอร์บางตัว (webview ใน LINE/แอปต่าง ๆ) ไม่มีพจนานุกรมตัดคำไทย เลยตัดบรรทัดกลางคำ
 // ตัดคำด้วย Intl.Segmenter ตอน build แล้วคั่นด้วย zero-width space ให้เบราว์เซอร์รู้ว่าตรงไหนตัดได้
@@ -993,3 +994,5 @@ const axisPalette = `
   if (S.mode && !S.home) run();
   else showResume();
 </script>
+
+<Analytics />

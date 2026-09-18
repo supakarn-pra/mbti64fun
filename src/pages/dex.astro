@@ -2,6 +2,7 @@
 import { AXES } from "../data/questions.js";
 import { GUILDS, TYPES, ARCHETYPES, guildOf } from "../data/types.js";
 import { ICONS } from "../data/icons.js";
+import Analytics from "@vercel/analytics/astro";
 
 const GUILD_ORDER = ["SP", "SJ", "NF", "NT"];
 const deepLabel = (k, letter) =>
@@ -432,5 +433,6 @@ const guildPalette = `
       // กดพื้นที่นอกกล่องแล้วปิด
       sheet.addEventListener("click", (e) => { if (e.target === sheet) sheet.close(); });
     </script>
+    <Analytics />
   </body>
 </html>
