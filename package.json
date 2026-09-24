@@ -7,10 +7,12 @@
     "build": "astro build",
     "stickers": "node scripts/stickers.mjs",
     "brand": "node scripts/brand.mjs",
+    "qr": "node scripts/qr.mjs",
     "preview": "astro preview"
   },
   "devDependencies": {
-    "astro": "^5.14.1"
+    "astro": "^5.14.1",
+    "qrcode": "^1.5.4"
   },
   "dependencies": {
     "@vercel/analytics": "^2.0.1"
