@@ -2,6 +2,7 @@
 import { AXES, QUESTIONS, CHOICES, DRAW, DEPTHS } from "../data/questions.js";
 import { TYPES, GUILDS, ARCHETYPES } from "../data/types.js";
 import { ICONS } from "../data/icons.js";
+import "../styles/background.css";
 import Analytics from "@vercel/analytics/astro";
 
 // เบราว์เซอร์บางตัว (webview ใน LINE/แอปต่าง ๆ) ไม่มีพจนานุกรมตัดคำไทย เลยตัดบรรทัดกลางคำ
@@ -60,7 +61,7 @@ const axisPalette = `
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link
   rel="stylesheet"
-  href="https://fonts.googleapis.com/css2?family=Srisakdi:wght@400;700&family=Sarabun:wght@300;400;600;700&family=IBM+Plex+Mono:wght@500&display=swap"
+  href="https://fonts.googleapis.com/css2?family=Kanit:wght@500;600&family=IBM+Plex+Sans+Thai:wght@300;400;600&family=IBM+Plex+Mono:wght@500&display=swap"
 />
 
 <style is:inline set:html={axisPalette}></style>
@@ -114,12 +115,14 @@ const axisPalette = `
   body {
     background: var(--ground);
     color: var(--ink);
-    font-family: Sarabun, "Noto Sans Thai", "Leelawadee UI", Thonburi, system-ui, sans-serif;
+    font-family: "IBM Plex Sans Thai", "Noto Sans Thai", "Leelawadee UI", Thonburi, system-ui, sans-serif;
     font-weight: 400;
     line-height: 1.75;
   }
-  .wrap { max-width: 620px; margin: 0 auto; padding-inline: 20px; padding-block: 0 56px; }
-  .fx { font-family: Srisakdi, Sarabun, serif; font-weight: 700; }
+  .wrap { max-width: 980px; margin: 0 auto; padding-inline: 20px; padding-block: 0 56px; }
+  /* กว้างเท่าหน้าทำเนียบ แต่คุมความกว้างบรรทัดไว้ ไม่งั้นคำถามยาวจนอ่านยาก */
+  .intro, .start, .stage, #result, footer { max-width: 640px; margin-inline: auto; }
+  .fx { font-family: Kanit, "IBM Plex Sans Thai", sans-serif; font-weight: 600; }
   /* ไอคอนเส้นจาก HugeIcons ใช้สีตามข้อความรอบ ๆ */
   .ic { width: 1.05em; height: 1.05em; flex: none; stroke-width: 1.6; vertical-align: -.17em; }
 
@@ -254,7 +257,7 @@ const axisPalette = `
   .sigil { width: 54px; height: 54px; flex: none; display: block; }
   .sigil img { display: block; width: 100%; height: 100%; object-fit: contain; }
   .gname { font-size: 17px; line-height: 1.3; }
-  .gline { display: block; font-family: Sarabun, sans-serif; font-weight: 400; font-size: 12.5px; color: var(--ink-faint); line-height: 1.5; }
+  .gline { display: block; font-family: inherit; font-weight: 400; font-size: 12.5px; color: var(--ink-faint); line-height: 1.5; }
   .code { font-family: "IBM Plex Mono", monospace; font-size: 15px; letter-spacing: .22em; color: var(--gold); margin: 0; }
   .nick { font-size: clamp(27px, 7vw, 38px); line-height: 1.35; margin: 4px 0 10px; text-wrap: balance; }
   .tag { margin: 0; color: var(--ink-soft); font-size: 15.5px; }
@@ -332,7 +335,7 @@ const axisPalette = `
   .resume:hover { background: color-mix(in srgb, var(--gold) 18%, var(--surface)); }
   .resume:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
   .resume .rk { font-size: 12px; color: var(--ink-faint); }
-  .resume b { font-family: Srisakdi, Sarabun, serif; font-weight: 700; font-size: 19px; line-height: 1.4; }
+  .resume b { font-family: Kanit, "IBM Plex Sans Thai", sans-serif; font-weight: 600; font-size: 19px; line-height: 1.4; }
 
   .len { display: flex; gap: 8px; }
   .len button {
@@ -356,7 +359,7 @@ const axisPalette = `
   .mode:hover { border-color: var(--gold); transform: translateY(-2px); }
   .mode:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
   .mode[aria-expanded="true"] { border-color: var(--gold); }
-  .mode b { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-family: Srisakdi, Sarabun, serif; font-weight: 700; font-size: 21px; line-height: 1.4; }
+  .mode b { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-family: Kanit, "IBM Plex Sans Thai", sans-serif; font-weight: 600; font-size: 21px; line-height: 1.4; }
   .mode b em { flex: none; font-variant-numeric: tabular-nums; }
   .ask .go { font-variant-numeric: tabular-nums; }
   .mode span { display: block; font-size: 13.5px; color: var(--ink-soft); line-height: 1.6; margin-top: 3px; }
@@ -379,7 +382,7 @@ const axisPalette = `
 
   /* ---------- บล็อกเทียบร่างเก่า ---------- */
   .vs { margin: 24px 0 0; padding: 18px 0 0; border-top: 1px solid var(--line); }
-  .vs h3 { font-family: Srisakdi, Sarabun, serif; font-weight: 700; font-size: 19px; margin: 0 0 3px; line-height: 1.4; }
+  .vs h3 { font-family: Kanit, "IBM Plex Sans Thai", sans-serif; font-weight: 600; font-size: 19px; margin: 0 0 3px; line-height: 1.4; }
   .vs .sub { margin: 0 0 14px; font-size: 13.5px; color: var(--ink-soft); }
   .vs ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 7px; }
   .vs li { display: flex; align-items: baseline; gap: 10px; font-size: 14px; }
@@ -734,10 +737,10 @@ const axisPalette = `
   // ปุ่มทำต่อ โผล่เฉพาะตอนมีแบบทดสอบค้างอยู่
   function showResume() {
     const b = $("resume");
-    const live = S.mode && Array.isArray(S.plan) && S.plan.length && S.plan.every((i) => QUESTIONS[i]);
-    b.hidden = !live;
-    if (!live) return;
-    const done = S.plan.filter((i) => S.ans[i] !== undefined).length;
+    const ok = S.mode && Array.isArray(S.plan) && S.plan.length && S.plan.every((i) => QUESTIONS[i]);
+    const done = ok ? S.plan.filter((i) => S.ans[i] !== undefined).length : 0;
+    b.hidden = !ok || !done; // ยังไม่ได้ตอบสักข้อก็ไม่มีอะไรให้ทำต่อ
+    if (b.hidden) return;
     const fin = done === S.plan.length;
     const what = S.mode === "upgrade" ? "อัพเกรดร่าง " + S.old.base
       : S.mode === "compare" ? "เทียบกับร่างเก่า " + code(S.old)

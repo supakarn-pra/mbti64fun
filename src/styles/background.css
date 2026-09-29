@@ -1,0 +1,60 @@
+/* พื้นหลังร่วมของทุกหน้า: แสงเรืองสีประจำสังกัด + ลายตารางจาง ๆ + ดาว
+   ทุกอย่างเป็น CSS ล้วน ไม่มีรูปและไม่มี JS  ใช้ตัวแปรสีที่แต่ละหน้าประกาศไว้อยู่แล้ว */
+
+:root {
+  --glow: 15%;      /* ความเข้มของแสงเรือง */
+  --lattice: 0.05;  /* ลายตาราง */
+  --star: 0;        /* โหมดสว่างไม่ต้องมีดาว */
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --glow: 30%; --lattice: 0.07; --star: 0.5; }
+}
+:root[data-theme="dark"] { --glow: 30%; --lattice: 0.07; --star: 0.5; }
+
+body { position: relative; min-height: 100dvh; }
+
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  inset: -12%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* แสงเรืองสามกอง ทอง ม่วงจอมมาร เขียววิหาร ลอยช้า ๆ ไม่ให้หน้านิ่งเกินไป */
+body::before {
+  background:
+    radial-gradient(46% 34% at 10% 0%, color-mix(in srgb, var(--gold) var(--glow), transparent), transparent 68%),
+    radial-gradient(40% 32% at 94% 8%, color-mix(in srgb, var(--g-NT) var(--glow), transparent), transparent 68%),
+    radial-gradient(50% 38% at 52% 102%, color-mix(in srgb, var(--g-NF) var(--glow), transparent), transparent 68%);
+  animation: drift 54s ease-in-out infinite;
+}
+
+/* ลายตารางเฉียงแบบตราประจำตระกูล กับดาวเล็ก ๆ ที่เห็นเฉพาะโหมดมืด */
+body::after {
+  background:
+    radial-gradient(1.4px 1.4px at 18% 22%, rgba(255, 255, 255, var(--star)), transparent 100%),
+    radial-gradient(1.1px 1.1px at 72% 36%, rgba(255, 255, 255, var(--star)), transparent 100%),
+    radial-gradient(1.6px 1.6px at 43% 68%, rgba(255, 255, 255, var(--star)), transparent 100%),
+    radial-gradient(1px 1px at 88% 81%, rgba(255, 255, 255, var(--star)), transparent 100%),
+    repeating-linear-gradient(45deg, transparent 0 26px, color-mix(in srgb, var(--gold) 55%, transparent) 26px 27px),
+    repeating-linear-gradient(-45deg, transparent 0 26px, color-mix(in srgb, var(--gold) 40%, transparent) 26px 27px);
+  background-size: 380px 380px, 380px 380px, 380px 380px, 380px 380px, auto, auto;
+  opacity: var(--lattice);
+  /* ลายจางลงตรงกลางหน้า ตัวหนังสือจะได้ไม่ลาย */
+  -webkit-mask-image: radial-gradient(70% 55% at 50% 42%, transparent 25%, #000 85%);
+  mask-image: radial-gradient(70% 55% at 50% 42%, transparent 25%, #000 85%);
+}
+
+@keyframes drift {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(-2.5%, 2%, 0) scale(1.08); }
+}
+
+/* เนื้อหาต้องอยู่เหนือชั้นตกแต่ง */
+.wrap { position: relative; z-index: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  body::before { animation: none; }
+}

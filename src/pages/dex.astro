@@ -1,10 +1,12 @@
 ---
 import { AXES } from "../data/questions.js";
-import { GUILDS, TYPES, ARCHETYPES, guildOf } from "../data/types.js";
+import { GUILDS, TYPES, ARCHETYPES, guildOf, matchesOf, MATCH_KINDS } from "../data/types.js";
 import { ICONS } from "../data/icons.js";
+import "../styles/background.css";
 import Analytics from "@vercel/analytics/astro";
 
 const GUILD_ORDER = ["SP", "SJ", "NF", "NT"];
+const MATCHES = Object.fromEntries(Object.keys(TYPES).map((c) => [c, matchesOf(c)]));
 const deepLabel = (k, letter) =>
   AXES[k].a === letter ? AXES[k].chipA || AXES[k].labA : AXES[k].chipB || AXES[k].labB;
 const nx = (s) => (s || "").split(" · ")[0];
@@ -56,7 +58,7 @@ const guildPalette = `
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Srisakdi:wght@400;700&family=Sarabun:wght@300;400;600;700&family=IBM+Plex+Mono:wght@500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Kanit:wght@500;600&family=IBM+Plex+Sans+Thai:wght@300;400;600&family=IBM+Plex+Mono:wght@500&display=swap"
     />
     <style is:inline set:html={guildPalette}></style>
     <style is:global>
@@ -106,7 +108,7 @@ const guildPalette = `
         margin: 0;
         background: var(--ground);
         color: var(--ink);
-        font-family: Sarabun, "Noto Sans Thai", "Leelawadee UI", Thonburi, system-ui, sans-serif;
+        font-family: "IBM Plex Sans Thai", "Noto Sans Thai", "Leelawadee UI", Thonburi, system-ui, sans-serif;
         line-height: 1.75;
       }
       .wrap {
@@ -114,7 +116,7 @@ const guildPalette = `
         margin: 0 auto;
         padding: 24px 20px 56px;
       }
-      .fx { font-family: Srisakdi, Sarabun, serif; font-weight: 700; }
+      .fx { font-family: Kanit, "IBM Plex Sans Thai", sans-serif; font-weight: 600; }
       .topbar {
         display: flex;
         align-items: center;
@@ -210,7 +212,7 @@ const guildPalette = `
         margin-bottom: 6px;
       }
       .dn {
-        font-family: Srisakdi, Sarabun, serif;
+        font-family: Kanit, "IBM Plex Sans Thai", sans-serif;
         font-weight: 700;
         font-size: 16.5px;
         line-height: 1.45;
@@ -246,14 +248,21 @@ const guildPalette = `
         display: block; width: min(210px, 58%); height: auto; margin: 0 auto 10px;
         filter: drop-shadow(0 6px 14px rgba(20, 14, 30, .22));
       }
+      /* ปุ่มใสคลุมทั้งการ์ด กดตรงไหนก็เปิดได้ ส่วน "ดูรายละเอียด" เหลือเป็นแค่ป้ายบอก */
+      .hit {
+        position: absolute; inset: 0; z-index: 2;
+        background: none; border: none; padding: 0; cursor: pointer;
+        border-radius: 3px;
+      }
+      .hit:focus-visible { outline: 2px solid var(--g); outline-offset: 3px; }
+      .dexlist li { position: relative; transition: transform .15s ease, box-shadow .15s ease, border-color .15s; }
+      .dexlist li:hover { transform: translateY(-3px); border-color: var(--g); box-shadow: 0 10px 22px -14px rgba(20, 14, 30, .55); }
+      .dexlist li:hover .more { opacity: 1; }
       .more {
-        margin-top: 10px; width: 100%; text-align: left; font: inherit; font-size: 12px;
-        color: var(--g); background: none; cursor: pointer;
-        border: none; border-top: 1px dashed var(--line); padding: 9px 0 0;
+        display: block; margin-top: 10px; font-size: 12px; color: var(--g); opacity: .72;
+        border-top: 1px dashed var(--line); padding-top: 9px; transition: opacity .15s;
       }
       .more::after { content: " →"; }
-      .more:hover { opacity: .75; }
-      .more:focus-visible { outline: 2px solid var(--g); outline-offset: 2px; }
 
       /* ---------- กล่องรายละเอียด ---------- */
       dialog {
@@ -295,6 +304,33 @@ const guildPalette = `
       .facts li { display: flex; flex-direction: column; gap: 2px; }
       .fk { font-size: 11.5px; color: var(--ink-faint); }
       .facts p { margin: 0; font-size: 14.5px; line-height: 1.6; color: var(--ink); }
+      .sect { margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--line); }
+      .sect h3 {
+        font-family: Kanit, "IBM Plex Sans Thai", sans-serif; font-weight: 600; font-size: 17px;
+        margin: 0 0 12px; line-height: 1.4;
+      }
+      .axes { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 11px; }
+      .axes li { display: flex; gap: 11px; align-items: flex-start; }
+      .axes .al { flex: none; width: 84px; font-size: 12px; color: var(--ink-faint); padding-top: 2px; }
+      .axes .ab { flex: 1; min-width: 0; border-left: 2px solid var(--a); padding-left: 11px; }
+      .axes b { display: block; font-size: 14px; color: var(--a); line-height: 1.5; }
+      .axes i { font-style: normal; font-size: 13px; color: var(--ink-soft); line-height: 1.6; }
+
+      .pairs { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+      .pairs li {
+        display: flex; gap: 12px; align-items: flex-start;
+        border: 1px solid var(--line); border-left: 3px solid var(--p);
+        border-radius: 3px; padding: 12px 14px;
+      }
+      .pairs img { flex: none; width: 64px; height: 64px; object-fit: contain; }
+      .pairs .pk {
+        display: inline-block; font-size: 11px; color: var(--p);
+        border: 1px solid var(--p); border-radius: 999px; padding: 0 8px; margin-right: 6px;
+      }
+      .pairs .pc { font-family: "IBM Plex Mono", monospace; font-size: 11.5px; letter-spacing: .1em; color: var(--ink-faint); }
+      .pairs .pn { display: block; font-family: Kanit, "IBM Plex Sans Thai", sans-serif; font-weight: 600; font-size: 16px; line-height: 1.45; margin: 3px 0 2px; }
+      .pairs .pw { font-style: normal; font-size: 12.5px; color: var(--ink-soft); line-height: 1.6; }
+
       .grow {
         margin: 16px 0 0; padding: 13px 15px; font-size: 14.5px; line-height: 1.65; color: var(--ink);
         background: color-mix(in srgb, var(--g) 10%, var(--surface));
@@ -317,9 +353,38 @@ const guildPalette = `
         font-size: 11px;
         line-height: 1.7;
       }
-      @media (max-width: 600px) {
-        .topbar { align-items: flex-start; flex-direction: column; }
-        .home { align-self: flex-end; }
+      /* ---------- จอมือถือ ---------- */
+      @media (max-width: 560px) {
+        .wrap { padding: 18px 14px 44px; }
+        /* หัวหน้ากับปุ่มกลับอยู่บรรทัดเดียวกัน ไม่ต้องหล่นลงมาซ้อน */
+        .topbar { gap: 10px; margin-bottom: 14px; }
+        .title { font-size: 25px; }
+        .home { flex: none; padding: 7px 12px; font-size: 13px; }
+        .sub { font-size: 13px; }
+
+        /* หัวสังกัด: จำนวนตำแหน่งหล่นลงบรรทัดใหม่ ไม่เบียดชื่อ */
+        .gh { flex-wrap: wrap; padding: 10px 12px; gap: 9px; }
+        .sg { width: 38px; height: 38px; }
+        .gn { font-size: 17px; }
+        .gh em { margin-left: 0; width: 100%; align-self: auto; }
+
+        /* การ์ดสองคอลัมน์แบบอัลบั้มสติกเกอร์ รายละเอียดที่เหลือไปดูใน modal */
+        .dexlist { grid-template-columns: 1fr 1fr; gap: 9px; }
+        .dexlist li { padding: 10px 10px 9px; }
+        .crow { flex-wrap: wrap; gap: 5px 6px; }
+        .dc { font-size: 10.5px; letter-spacing: .08em; }
+        .badge { font-size: 9.5px; padding: 0 5px; }
+        .thumb { max-width: 100%; margin-bottom: 4px; }
+        .dn { font-size: 14.5px; }
+        .dt, .chips { display: none; }
+        .more { font-size: 11px; padding-top: 7px; margin-top: 8px; }
+
+        .sheetbox { padding: 24px 16px 20px; }
+        .axes li { flex-direction: column; gap: 3px; }
+        .axes .al { width: auto; }
+        .axes .ab { padding-left: 9px; }
+        .pairs li { flex-direction: column; gap: 8px; }
+        .pairs img { width: 72px; height: 72px; }
       }
     </style>
   </head>
@@ -352,6 +417,7 @@ const guildPalette = `
                   const base = code.slice(0, 4);
                   return (
                     <li style={`--g: var(--g-${key});`}>
+                      <button class="hit" type="button" data-code={code} aria-label={`ดูรายละเอียด ${nick}`}></button>
                       <div class="crow">
                         <span class="av"><svg class="ic" viewBox="0 0 24 24" fill="none" aria-hidden="true" set:html={ICONS[g.icon]} /></span>
                         <span class="dc">{code}</span>
@@ -366,7 +432,7 @@ const guildPalette = `
                         <span>{deepLabel(4, code[5])}</span>
                         <span>{deepLabel(5, code[6])}</span>
                       </div>
-                      <button class="more" type="button" data-code={code}>ดูรายละเอียด</button>
+                      <span class="more">ดูรายละเอียด</span>
                     </li>
                   );
                 })}
@@ -399,16 +465,24 @@ const guildPalette = `
             <li><span class="fk">สายงานที่เหมาะ</span><p id="s-roles"></p></li>
           </ul>
           <p class="grow" id="s-grow"></p>
+          <div class="sect">
+            <h3>ค่าสถานะ 6 แกน</h3>
+            <ul class="axes" id="s-axes"></ul>
+          </div>
+          <div class="sect">
+            <h3>เข้ากับใครได้ดี</h3>
+            <ul class="pairs" id="s-pairs"></ul>
+          </div>
         </div>
       </dialog>
     </main>
 
-    <script is:inline define:vars={{ TYPES, GUILDS, ARCHETYPES, ICONS }}>
+    <script is:inline define:vars={{ TYPES, GUILDS, ARCHETYPES, ICONS, AXES, MATCHES, MATCH_KINDS }}>
       const guildOf = (b) => (b[1] === "N" ? (b[2] === "T" ? "NT" : "NF") : b[3] === "J" ? "SJ" : "SP");
       const sheet = document.getElementById("sheet");
       const $ = (id) => document.getElementById(id);
 
-      document.querySelectorAll(".more").forEach((b) => {
+      document.querySelectorAll(".hit").forEach((b) => {
         b.onclick = () => {
           const code = b.dataset.code, t = TYPES[code], key = guildOf(code.slice(0, 4)), g = GUILDS[key];
           sheet.style.setProperty("--g", "var(--g-" + key + ")");
@@ -425,6 +499,39 @@ const guildPalette = `
           $("s-care").textContent = t.care;
           $("s-roles").textContent = t.roles.join(" · ");
           $("s-grow").textContent = t.grow;
+
+          // ไล่ทีละแกนว่ารหัสนี้อยู่ขั้วไหน แล้วหยิบคำอธิบายของขั้วนั้นมา
+          const ls = [code[0], code[1], code[2], code[3], code[5], code[6]];
+          const ax = $("s-axes");
+          ax.innerHTML = "";
+          AXES.forEach((x, i) => {
+            const first = ls[i] === x.a;
+            const li = document.createElement("li");
+            li.style.setProperty("--a", "var(--c-" + x.key + ")");
+            li.innerHTML = '<span class="al"></span><span class="ab"><b></b><i></i></span>';
+            li.querySelector(".al").textContent = x.name;
+            li.querySelector("b").textContent = "(" + ls[i] + ") " + (first ? x.labA : x.labB);
+            li.querySelector("i").textContent = first ? x.descA : x.descB;
+            ax.appendChild(li);
+          });
+
+          const pr = $("s-pairs");
+          pr.innerHTML = "";
+          (MATCHES[code] || []).forEach((m) => {
+            const other = TYPES[m.code], k = MATCH_KINDS[m.kind];
+            const gk = guildOf(m.code.slice(0, 4));
+            const li = document.createElement("li");
+            li.style.setProperty("--p", "var(--g-" + gk + ")");
+            li.innerHTML =
+              '<img src="../mob/' + m.code + '.webp" alt="" width="320" height="320" loading="lazy" decoding="async">' +
+              '<div><span class="pk"></span><span class="pc"></span><b class="pn"></b><i class="pw"></i></div>';
+            li.querySelector(".pk").textContent = k.label;
+            li.querySelector(".pc").textContent = m.code;
+            li.querySelector(".pn").textContent = other.name;
+            li.querySelector(".pw").textContent = k.why;
+            pr.appendChild(li);
+          });
+
           sheet.showModal();
         };
       });
